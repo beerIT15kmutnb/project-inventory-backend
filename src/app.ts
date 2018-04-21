@@ -64,7 +64,7 @@ app.use((req, res, next) => {
 });
 
 app.use('/login',login)
-app.use('/product',product);
+app.use('/products',product);
 app.use('/',index);
 
 

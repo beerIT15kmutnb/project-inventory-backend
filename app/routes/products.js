@@ -29,5 +29,39 @@ router.get('/getList', wrap((req, res, next) => __awaiter(this, void 0, void 0, 
         db.destroy();
     }
 })));
+router.post('/stock/products/all', wrap((req, res, next) => __awaiter(this, void 0, void 0, function* () {
+    let db = req.db;
+    let limit = req.body.limit || 10;
+    let offset = req.body.offset || 0;
+    try {
+        let rsTotal = yield productModel.adminGetAllProductTotal(db);
+        let rs = yield productModel.adminGetAllProducts(db, limit, offset);
+        res.send({ ok: true, rows: rs, total: rsTotal[0].total });
+    }
+    catch (error) {
+        res.send({ ok: false, error: error.message });
+    }
+    finally {
+        db.destroy();
+    }
+})));
+router.post('/stock/products/search', wrap((req, res, next) => __awaiter(this, void 0, void 0, function* () {
+    let db = req.db;
+    let limit = req.body.limit || 10;
+    let offset = req.body.offset || 0;
+    let query = req.body.query;
+    let _pgs = [];
+    try {
+        let rsTotal = yield productModel.adminSearchProductsTotal(db, query);
+        let rs = yield productModel.adminSearchProducts(db, query, limit, offset);
+        res.send({ ok: true, rows: rs[0], total: rsTotal[0].length });
+    }
+    catch (error) {
+        res.send({ ok: false, error: error.message });
+    }
+    finally {
+        db.destroy();
+    }
+})));
 exports.default = router;
 //# sourceMappingURL=products.js.map

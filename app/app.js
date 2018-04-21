@@ -47,7 +47,7 @@ app.use((req, res, next) => {
     next();
 });
 app.use('/login', login_1.default);
-app.use('/product', products_1.default);
+app.use('/products', products_1.default);
 app.use('/', index_1.default);
 app.use((req, res, next) => {
     var err = new Error('Not Found');
