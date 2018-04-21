@@ -11,6 +11,7 @@ const Knex = require("knex");
 const index_1 = require("./routes/index");
 const products_1 = require("./routes/products");
 const login_1 = require("./routes/login");
+const receives_1 = require("./routes/receives");
 const app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
@@ -48,6 +49,7 @@ app.use((req, res, next) => {
 });
 app.use('/login', login_1.default);
 app.use('/products', products_1.default);
+app.use('/receives', receives_1.default);
 app.use('/', index_1.default);
 app.use((req, res, next) => {
     var err = new Error('Not Found');

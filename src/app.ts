@@ -19,6 +19,7 @@ import { MySqlConnectionConfig } from 'knex';
 import index from './routes/index';
 import product from './routes/products';
 import login from './routes/login';
+import receives from './routes/receives';
 const app: express.Express = express();
 
 //view engine setup
@@ -65,6 +66,7 @@ app.use((req, res, next) => {
 
 app.use('/login',login)
 app.use('/products',product);
+app.use('/receives',receives);
 app.use('/',index);
 
 
