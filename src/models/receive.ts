@@ -36,37 +36,37 @@ export class ReceiveModel {
   // }
 
   getReceiveNapprove(knex: Knex, limit: number, offset: number) {
-    return knex('wm_receives as r')
-      .select('r.receive_id', 'r.is_cancel', 'r.receive_code', 'r.receive_tmp_code', 'r.purchase_order_id', 'r.receive_date', 'r.delivery_date',
-        'r.delivery_code', 'l.labeler_name', 'pp.purchase_order_number', 'pp.purchase_order_book_number', 'pp.purchase_order_id')
-      .leftJoin('mm_labelers as l', 'l.labeler_id', 'r.vendor_labeler_id')
-      .leftJoin('pc_purchasing_order as pp', 'pp.purchase_order_id', 'r.purchase_order_id')
-      .whereNotExists(knex.select('*').from('wm_receive_approve as ra')
-        .whereRaw('r.receive_id = ra.receive_id'))
-      .orderBy('r.receive_date', 'DESC')
-      .orderBy('r.receive_code', 'DESC')
-      .limit(limit)
-      .offset(offset);
+    // return knex('wm_receives as r')
+    //   .select('r.receive_id', 'r.is_cancel', 'r.receive_code', 'r.receive_tmp_code', 'r.purchase_order_id', 'r.receive_date', 'r.delivery_date',
+    //     'r.delivery_code', 'l.labeler_name', 'pp.purchase_order_number', 'pp.purchase_order_book_number', 'pp.purchase_order_id')
+    //   .leftJoin('mm_labelers as l', 'l.labeler_id', 'r.vendor_labeler_id')
+    //   .leftJoin('pc_purchasing_order as pp', 'pp.purchase_order_id', 'r.purchase_order_id')
+    //   .whereNotExists(knex.select('*').from('wm_receive_approve as ra')
+    //     .whereRaw('r.receive_id = ra.receive_id'))
+    //   .orderBy('r.receive_date', 'DESC')
+    //   .orderBy('r.receive_code', 'DESC')
+    //   .limit(limit)
+    //   .offset(offset);
   }
 
   getReceiveApprove(knex: Knex, limit: number, offset: number, warehouseId) {
-    return knex('wm_receives as r')
-      .select('r.receive_id', 'r.is_cancel', 'r.receive_code', 'r.receive_tmp_code', 'r.purchase_order_id', 'r.receive_date', 'r.delivery_date',
-        'r.delivery_code', 'l.labeler_name', 'pp.purchase_order_number', 'pp.purchase_order_book_number', 'pp.purchase_order_id', 'ra.approve_date', 'ra.approve_id')
-      .leftJoin('mm_labelers as l', 'l.labeler_id', 'r.vendor_labeler_id')
-      .leftJoin('pc_purchasing_order as pp', 'pp.purchase_order_id', 'r.purchase_order_id')
-      .innerJoin('wm_receive_approve as ra', 'ra.receive_id', 'r.receive_id')
-      .whereRaw(`r.receive_id in (SELECT
-        rod.receive_id
-      FROM
-        wm_receive_detail rod
-      WHERE
-        rod.warehouse_id = ${warehouseId}
-      AND rod.receive_id = r.receive_id)`)
-      .orderBy('r.receive_date', 'DESC')
-      .orderBy('r.receive_code', 'DESC')
-      .limit(limit)
-      .offset(offset);
+    // return knex('wm_receives as r')
+    //   .select('r.receive_id', 'r.is_cancel', 'r.receive_code', 'r.receive_tmp_code', 'r.purchase_order_id', 'r.receive_date', 'r.delivery_date',
+    //     'r.delivery_code', 'l.labeler_name', 'pp.purchase_order_number', 'pp.purchase_order_book_number', 'pp.purchase_order_id', 'ra.approve_date', 'ra.approve_id')
+    //   .leftJoin('mm_labelers as l', 'l.labeler_id', 'r.vendor_labeler_id')
+    //   .leftJoin('pc_purchasing_order as pp', 'pp.purchase_order_id', 'r.purchase_order_id')
+    //   .innerJoin('wm_receive_approve as ra', 'ra.receive_id', 'r.receive_id')
+    //   .whereRaw(`r.receive_id in (SELECT
+    //     rod.receive_id
+    //   FROM
+    //     wm_receive_detail rod
+    //   WHERE
+    //     rod.warehouse_id = ${warehouseId}
+    //   AND rod.receive_id = r.receive_id)`)
+    //   .orderBy('r.receive_date', 'DESC')
+    //   .orderBy('r.receive_code', 'DESC')
+    //   .limit(limit)
+    //   .offset(offset);
   }
 
   // getReceiveWaitingTotal(knex: Knex, warehouseId) {
@@ -419,8 +419,11 @@ export class ReceiveModel {
   }
 
   saveApprove(knex: Knex, data: any) {
-    return knex('wm_receive_approve')
-      .insert(data);
+    let sql =`UPDATE wm_receives
+    SET is_approve = 'Y' 
+    WHERE
+      receive_id IN ( ${data} )`
+    return knex.raw(sql)
   }
 
   removeOldApprove(knex: Knex, receiveIds: any) {
@@ -434,7 +437,7 @@ export class ReceiveModel {
       .whereIn('receive_other_id', receiveIds)
       .del();
   }
-
+  // use
   saveReceiveDetail(knex: Knex, products: any[]) {
     return knex('wm_receive_detail')
       .insert(products);
@@ -466,7 +469,7 @@ export class ReceiveModel {
       .update(data)
       .where('receive_other_id', receiveOtherId)
   }
-
+// use
   updateReceiveSummary(knex: Knex, receiveId: any, data: any) {
     return knex('wm_receives')
       .where('receive_id', receiveId)
@@ -483,21 +486,17 @@ export class ReceiveModel {
     return knex('wm_receive_approve')
       .where('receive_id', receiveId);
   }
-
+//ใช้
   getReceiveInfo(knex: Knex, receiveId: any) {
     return knex('wm_receives as r')
-      .select('r.receive_id', 'r.receive_code', 'r.receive_tmp_code', 'r.receive_date', 'r.delivery_code', 'r.delivery_date',
-        'r.receive_type_id', 'r.receive_status_id', 'r.vendor_labeler_id',
-        'lm.labeler_name', 'rt.receive_type_name', 'rs.receive_status_name', 'r.committee_id',
-        'pc.purchase_order_number', 'pc.purchase_order_id', 'pc.order_date',
-        'ra.approve_date', 'ra.approve_id', 'r.is_success', 'r.is_completed')
-      .leftJoin('mm_labelers as lm', 'lm.labeler_id', 'r.vendor_labeler_id')
-      .leftJoin('wm_receive_types as rt', 'rt.receive_type_id', 'r.receive_type_id')
-      .leftJoin('wm_receive_status as rs', 'rs.receive_status_id', 'r.receive_status_id')
-      .leftJoin('pc_purchasing_order as pc', 'pc.purchase_order_id', 'r.purchase_order_id')
-      .leftJoin('wm_receive_approve as ra', 'ra.receive_id', 'r.receive_id')
       .where('r.receive_id', receiveId);
   }
+//ใช้
+  getSerial(knex: Knex){
+    return knex('wm_receives')
+    .count('* as total')
+  }
+
 //ใช้
   getReceiveProducts(knex: Knex, receiveId: any) {
     let sql = `SELECT
@@ -534,14 +533,11 @@ WHERE
       .select(
         'rd.receive_detail_id', 'rd.receive_id', 'rd.product_id',
         'rd.lot_no', 'rd.expired_date', knex.raw('sum(rd.receive_qty) as receive_qty'),
-        'rd.manufacturer_labeler_id', 'r.vendor_labeler_id', 'rd.cost', 'rd.unit_generic_id',
-        'rd.warehouse_id', 'rd.location_id', 'rd.is_free', 'rd.discount',
-        'ug.qty as conversion_qty', 'mp.generic_id', 'r.receive_code', subBalance)
+         'mp.generic_id', 'r.receive_code', subBalance)
       // knex.raw('sum(rd.receive_qty) as receive_qty'),
       // knex.raw('sum(reqd.requisition_qty) as requisition_qty'), )
       .whereIn('rd.receive_id', receiveIds)
       .innerJoin('wm_receives as r', 'r.receive_id', 'rd.receive_id')
-      .innerJoin('mm_unit_generics as ug', 'ug.unit_generic_id', 'rd.unit_generic_id')
       // .leftJoin('wm_requisition_detail as reqd', join => {
       //   join.on('reqd.product_id', 'rd.product_id')
       //     .on('reqd.receive_id', 'rd.receive_id')
@@ -597,18 +593,12 @@ WHERE
   saveProducts(knex: Knex, data: any[]) {
     let sqls = [];
     data.forEach(v => {
-      let totalCost = v.cost * v.qty;
       let sql = `
         INSERT INTO wm_products(wm_product_id, warehouse_id, product_id, qty, 
-        cost, price, lot_no, expired_date, location_id, unit_generic_id, people_user_id, created_at)
-        VALUES('${v.wm_product_id}', '${v.warehouse_id}', '${v.product_id}', ${v.qty}, ${v.cost}, 
-        ${v.price}, '${v.lot_no}', '${v.expired_date}', ${v.location_id}, 
-        ${v.unit_generic_id}, ${v.people_user_id}, '${v.created_at}')
-        ON DUPLICATE KEY UPDATE qty=qty+${v.qty}, cost=(
-        select (sum(w.qty*w.cost)+${totalCost})/(sum(w.qty)+${v.qty})
-        from wm_products as w
-        where w.product_id='${v.product_id}' and w.lot_no='${v.lot_no}'
-        group by w.product_id)
+        lot_no, expired_date, people_user_id)
+        VALUES('${v.wm_product_id}', '${v.warehouse_id}', '${v.product_id}', ${v.qty},
+         '${v.lot_no}', '${v.expired_date}', ${v.people_user_id})
+        ON DUPLICATE KEY UPDATE qty=qty+${v.qty}
         `;
       sqls.push(sql);
     });
@@ -635,7 +625,7 @@ WHERE
         cancel_people_user_id: peopleUserId
       });
   }
-
+// use
   removeReceiveDetail(knex: Knex, receiveId: string) {
     return knex('wm_receive_detail')
       .where('receive_id', receiveId)

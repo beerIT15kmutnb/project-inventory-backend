@@ -6,7 +6,8 @@ import * as favicon from 'serve-favicon';
 import * as logger from 'morgan';
 import * as cookieParser from 'cookie-parser';
 import * as bodyParser from 'body-parser';
-
+import { Jwt } from './models/jwt';
+const jwt = new Jwt();
 import * as cors from 'cors';
 import * as fse from 'fs-extra';
 import * as _ from 'lodash';
@@ -23,17 +24,41 @@ import receives from './routes/receives';
 const app: express.Express = express();
 
 //view engine setup
-app.set('views',path.join(__dirname,'views'));
-app.set('view engine','pug');
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'pug');
 
 //uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname,'public','favicon.ico')));
 app.use(logger('dev'));
 app.use(bodyParser.json({ limit: '5mb' }));
-app.use(bodyParser.urlencoded({extended: false, limit: '5mb' }));
+app.use(bodyParser.urlencoded({ extended: false, limit: '5mb' }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname,'public')));
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(cors());
+
+let checkAuth = (req, res, next) => {
+  let token: string = null;
+  if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
+    token = req.headers.authorization.split(' ')[1];
+  } else if (req.query && req.query.token) {
+    token = req.query.token;
+  } else {
+    token = req.body.token;
+  }
+
+  jwt.verify(token)
+    .then((decoded: any) => {
+      req.decoded = decoded;
+      next();
+    }, err => {
+      console.log(err);
+      return res.send({
+        ok: false,
+        error: 'No token provided.',
+        code: 403
+      });
+    });
+}
 
 let dbConnection: MySqlConnectionConfig = {
   host: process.env.DB_HOST,
@@ -64,14 +89,14 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use('/login',login)
-app.use('/products',product);
-app.use('/receives',receives);
-app.use('/',index);
+app.use('/login', login)
+app.use('/products', checkAuth, product);
+app.use('/receives', checkAuth, receives);
+app.use('/', checkAuth, index);
 
 
 //catch 404 and forward to error handler
-app.use((req,res,next) => {
+app.use((req, res, next) => {
   var err = new Error('Not Found');
   err['status'] = 404;
   next(err);
@@ -81,9 +106,9 @@ app.use((req,res,next) => {
 
 //production error handler
 // no stacktrace leaked to user
-app.use((err: Error,req,res,next) => {
+app.use((err: Error, req, res, next) => {
   res.status(err['status'] || 500);
-  res.render('error',{
+  res.render('error', {
     title: 'error',
     message: err.message,
     error: {}

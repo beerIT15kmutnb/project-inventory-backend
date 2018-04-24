@@ -6,6 +6,8 @@ const path = require("path");
 const logger = require("morgan");
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
+const jwt_1 = require("./models/jwt");
+const jwt = new jwt_1.Jwt();
 const cors = require("cors");
 const Knex = require("knex");
 const index_1 = require("./routes/index");
@@ -21,6 +23,30 @@ app.use(bodyParser.urlencoded({ extended: false, limit: '5mb' }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(cors());
+let checkAuth = (req, res, next) => {
+    let token = null;
+    if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
+        token = req.headers.authorization.split(' ')[1];
+    }
+    else if (req.query && req.query.token) {
+        token = req.query.token;
+    }
+    else {
+        token = req.body.token;
+    }
+    jwt.verify(token)
+        .then((decoded) => {
+        req.decoded = decoded;
+        next();
+    }, err => {
+        console.log(err);
+        return res.send({
+            ok: false,
+            error: 'No token provided.',
+            code: 403
+        });
+    });
+};
 let dbConnection = {
     host: process.env.DB_HOST,
     port: +process.env.DB_PORT,
@@ -48,9 +74,9 @@ app.use((req, res, next) => {
     next();
 });
 app.use('/login', login_1.default);
-app.use('/products', products_1.default);
-app.use('/receives', receives_1.default);
-app.use('/', index_1.default);
+app.use('/products', checkAuth, products_1.default);
+app.use('/receives', checkAuth, receives_1.default);
+app.use('/', checkAuth, index_1.default);
 app.use((req, res, next) => {
     var err = new Error('Not Found');
     err['status'] = 404;

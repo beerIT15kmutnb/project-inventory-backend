@@ -60,4 +60,31 @@ router.post('/stock/products/all', wrap(async (req, res, next) => {
 
   }));
 
+  router.get('/search-autocomplete', wrap(async (req, res, next) => {
+
+    let db = req.db;
+    const query = req.query.q;
+    const labelerId = req.query.labelerId;
+  
+    try {
+      let rs: any;
+      if(labelerId){
+        rs = await productModel.adminSearchAllProductsLabeler(db, query, labelerId);
+      } else {
+        rs = await productModel.adminSearchAllProducts(db, query);
+      }
+      
+      if (rs[0].length) {
+        res.send(rs[0]);
+      } else {
+        res.send([]);
+      }
+    } catch (error) {
+      res.send({ ok: false, error: error.message });
+    } finally {
+      db.destroy();
+    }
+  
+  }));
+
 export default router;
