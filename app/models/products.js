@@ -74,8 +74,8 @@ class ProductModel {
 	mp.product_code,
 	mp.product_name,
 	g.min_qty,
-	g.max_qty,
-	sum( p.qty ) AS qty,
+  g.max_qty,
+  ifnull(sum(p.qty),0) as qty,
 	uL.unit_name 
 FROM
 	mm_products AS mp

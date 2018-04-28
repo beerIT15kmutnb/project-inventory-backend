@@ -21,6 +21,7 @@ import index from './routes/index';
 import product from './routes/products';
 import login from './routes/login';
 import receives from './routes/receives';
+import issue from './routes/issue';
 const app: express.Express = express();
 
 //view engine setup
@@ -92,6 +93,7 @@ app.use((req, res, next) => {
 app.use('/login', login)
 app.use('/products', checkAuth, product);
 app.use('/receives', checkAuth, receives);
+app.use('/issues',checkAuth,issue)
 app.use('/', checkAuth, index);
 
 
