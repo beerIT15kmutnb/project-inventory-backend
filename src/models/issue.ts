@@ -2,6 +2,10 @@ import Knex = require('knex');
 import * as moment from 'moment';
 
 export class IssueModel {
+  getTransactionIssues(knex: Knex){
+    return knex('wm_transaction_issues')
+
+  }
 
   saveSummary(knex: Knex, data: any) {
     return knex('wm_issue_summary')

@@ -2,12 +2,12 @@ import Knex = require('knex');
 import * as moment from 'moment';
 export class ProductModel {
 
-    getList(knex: Knex) {
-        return knex('generic_types')
-    }
+  getList(knex: Knex) {
+    return knex('generic_types')
+  }
 
-    adminGetAllProducts(knex: Knex, limit: number, offset: number) {
-        let query = `SELECT
+  adminGetAllProducts(knex: Knex, limit: number, offset: number) {
+    let query = `SELECT
         g.generic_code,
         g.generic_name,
         mp.product_code,
@@ -30,21 +30,21 @@ export class ProductModel {
         mp.product_name ASC 
         LIMIT ${limit}
         offset ${offset}`
-        
-        return knex.raw(query);
-      }
-    
-      adminGetAllProductTotal(knex: Knex) {
-        let query = knex('wm_products as p')
-          .select(knex.raw('count(distinct p.product_id) as total'))
-          .innerJoin('mm_products as mp', 'mp.product_id', 'p.product_id')
-          .innerJoin('mm_generics as mg', 'mp.generic_id', 'mg.generic_id')
-        return query;
-      }
 
-      adminSearchProductsTotal(knex: Knex, query: any) {
-        let _query = `%${query}%`;
-          let sql = `
+    return knex.raw(query);
+  }
+
+  adminGetAllProductTotal(knex: Knex) {
+    let query = knex('wm_products as p')
+      .select(knex.raw('count(distinct p.product_id) as total'))
+      .innerJoin('mm_products as mp', 'mp.product_id', 'p.product_id')
+      .innerJoin('mm_generics as mg', 'mp.generic_id', 'mg.generic_id')
+    return query;
+  }
+
+  adminSearchProductsTotal(knex: Knex, query: any) {
+    let _query = `%${query}%`;
+    let sql = `
           SELECT
           g.generic_code,
           g.generic_name,
@@ -68,12 +68,12 @@ export class ProductModel {
           mp.product_name ASC 
           
         `;
-          return knex.raw(sql, [_query, _query]);
-      }
-// use
-      adminSearchProducts(knex: Knex, query: any, limit: number, offset: number) {
-        let _query = `%${query}%`;
-          let sql = `
+    return knex.raw(sql, [_query, _query]);
+  }
+  // use
+  adminSearchProducts(knex: Knex, query: any, limit: number, offset: number) {
+    let _query = `%${query}%`;
+    let sql = `
           SELECT
 	g.generic_code,
 	g.generic_name,
@@ -97,14 +97,14 @@ ORDER BY
 	mp.product_name ASC 
         limit ? offset ?
         `;
-          return knex.raw(sql, [_query, _query, limit, offset]);
-      
-      }
+    return knex.raw(sql, [_query, _query, limit, offset]);
 
-      adminSearchAllProductsLabeler(knex: Knex, query: any, labelerId: any) {
-        let q_ = `${query}%`;
-        let _q_ = `%${query}%`;
-        let sql = `
+  }
+
+  adminSearchAllProductsLabeler(knex: Knex, query: any, labelerId: any) {
+    let q_ = `${query}%`;
+    let _q_ = `%${query}%`;
+    let sql = `
         select DISTINCT * from (
         SELECT
           concat(
@@ -208,15 +208,15 @@ ORDER BY
         ORDER BY
           mp.product_name ASC
         LIMIT 10) as a) as s`;
-        return knex.raw(sql);
-      }
-    
-      adminSearchAllProducts(knex: Knex, query: any) {
-        let q_ = `${query}%`;
-        let _q_ = `%${query}%`;
-        let sql = `
+    return knex.raw(sql);
+  }
+
+  adminSearchAllProducts(knex: Knex, query: any) {
+    let q_ = `${query}%`;
+    let _q_ = `%${query}%`;
+    let sql = `
         select DISTINCT * from (
-        SELECT
+       ( SELECT
 	mp.product_name,
 	mp.product_id,
 	mg.generic_code AS generic_workign_code,
@@ -233,7 +233,7 @@ FROM
 WHERE
 	( mp.product_name LIKE '${query}' ) 
 	AND mp.is_active = 1 
-	LIMIT 10
+	LIMIT 10 )
         UNION ALL
         SELECT * from (
         SELECT
@@ -279,7 +279,23 @@ WHERE
 ORDER BY
 	mp.product_name ASC 
 	LIMIT 10) as a) as s`;
-        return knex.raw(sql);
-      }
+    return knex.raw(sql);
+  }
+
+  getProductRemain(knex: Knex, product_id: any) {
+    let sql = `SELECT
+    IFNULL( q.qty, 0 ) AS qty 
+  FROM
+    (
+  SELECT
+    sum( wp.qty ) as qty
+  FROM
+    mm_products AS mp
+    LEFT JOIN wm_products AS wp ON wp.product_id = mp.product_id 
+  WHERE
+    wp.product_id = ${product_id}
+    ) AS q`
+    return knex.raw(sql)
+  }
 
 }

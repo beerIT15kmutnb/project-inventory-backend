@@ -29,6 +29,21 @@ router.get('/getList', wrap((req, res, next) => __awaiter(this, void 0, void 0, 
         db.destroy();
     }
 })));
+router.post('/remain', wrap((req, res, next) => __awaiter(this, void 0, void 0, function* () {
+    let db = req.db;
+    let product_id = req.body.product_id;
+    try {
+        let products = yield productModel.getProductRemain(db, product_id);
+        console.log(products[0]);
+        res.send({ ok: true, data: products[0] });
+    }
+    catch (error) {
+        res.send({ ok: false, error: error.message });
+    }
+    finally {
+        db.destroy();
+    }
+})));
 router.post('/stock/products/all', wrap((req, res, next) => __awaiter(this, void 0, void 0, function* () {
     let db = req.db;
     let limit = req.body.limit || 10;

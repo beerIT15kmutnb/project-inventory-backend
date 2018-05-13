@@ -25,6 +25,20 @@ router.get('/getList',  wrap(async (req, res, next) => {
         db.destroy();
     }
 }));
+router.post('/remain',  wrap(async (req, res, next) => {
+  let db = req.db;
+  let product_id = req.body.product_id
+  try {
+      let products = await productModel.getProductRemain(db,product_id);
+      console.log(products[0]);
+      
+      res.send({ ok: true, data: products[0]})
+  } catch (error){
+      res.send({ ok: false, error: error.message });
+  } finally {
+      db.destroy();
+  }
+}));
 
 router.post('/stock/products/all', wrap(async (req, res, next) => {
     let db = req.db;

@@ -207,7 +207,7 @@ ORDER BY
         let _q_ = `%${query}%`;
         let sql = `
         select DISTINCT * from (
-        SELECT
+       ( SELECT
 	mp.product_name,
 	mp.product_id,
 	mg.generic_code AS generic_workign_code,
@@ -224,7 +224,7 @@ FROM
 WHERE
 	( mp.product_name LIKE '${query}' ) 
 	AND mp.is_active = 1 
-	LIMIT 10
+	LIMIT 10 )
         UNION ALL
         SELECT * from (
         SELECT
@@ -270,6 +270,21 @@ WHERE
 ORDER BY
 	mp.product_name ASC 
 	LIMIT 10) as a) as s`;
+        return knex.raw(sql);
+    }
+    getProductRemain(knex, product_id) {
+        let sql = `SELECT
+    IFNULL( q.qty, 0 ) AS qty 
+  FROM
+    (
+  SELECT
+    sum( wp.qty ) as qty
+  FROM
+    mm_products AS mp
+    LEFT JOIN wm_products AS wp ON wp.product_id = mp.product_id 
+  WHERE
+    wp.product_id = ${product_id}
+    ) AS q`;
         return knex.raw(sql);
     }
 }

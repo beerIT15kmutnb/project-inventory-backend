@@ -17,8 +17,17 @@ const issueModel = new IssueModel();
 const productModel = new ProductModel();
 // const serialModel = new SerialModel();
 // const stockCardModel = new StockCard();
-
-
+router.get('/getTransactionIssues', co(async (req, res, next) => {
+  let db = req.db;
+  try {
+    let rs = await issueModel.getTransactionIssues(db);
+    res.send({ ok: true, rows: rs });
+  } catch (error) {
+    res.send({ ok: false, error: error.message });
+  } finally {
+    db.destroy();
+  }
+}));
 // router.post('/', co(async (req, res, next) => {
 
 //   let db = req.db;
@@ -364,11 +373,11 @@ router.get('/', co(async (req, res, next) => {
   try {
     let rs = await issueModel.getListIssues(db, +limit, offset, status);
     let rsTotal = await issueModel.getListTotal(db, status);
-    console.log('++++++',rs,rsTotal);
+    console.log('++++++', rs, rsTotal);
     res.send({ ok: true, rows: rs, total: +rsTotal[0].total });
   } catch (error) {
     console.log('-----------');
-    
+
     res.send({ ok: false, error: error.message });
   } finally {
     db.destroy();

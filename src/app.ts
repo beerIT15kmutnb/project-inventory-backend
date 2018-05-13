@@ -93,7 +93,7 @@ app.use((req, res, next) => {
 app.use('/login', login)
 app.use('/products', checkAuth, product);
 app.use('/receives', checkAuth, receives);
-app.use('/issues',checkAuth,issue)
+app.use('/issues', checkAuth, issue)
 app.use('/', checkAuth, index);
 
 

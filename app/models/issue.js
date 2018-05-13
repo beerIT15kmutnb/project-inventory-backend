@@ -1,6 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class IssueModel {
+    getTransactionIssues(knex) {
+        return knex('wm_transaction_issues');
+    }
     saveSummary(knex, data) {
         return knex('wm_issue_summary')
             .insert(data, 'issue_id');

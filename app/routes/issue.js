@@ -15,6 +15,19 @@ const products_1 = require("../models/products");
 const router = express.Router();
 const issueModel = new issue_1.IssueModel();
 const productModel = new products_1.ProductModel();
+router.get('/getTransactionIssues', co((req, res, next) => __awaiter(this, void 0, void 0, function* () {
+    let db = req.db;
+    try {
+        let rs = yield issueModel.getTransactionIssues(db);
+        res.send({ ok: true, rows: rs });
+    }
+    catch (error) {
+        res.send({ ok: false, error: error.message });
+    }
+    finally {
+        db.destroy();
+    }
+})));
 router.get('/', co((req, res, next) => __awaiter(this, void 0, void 0, function* () {
     let db = req.db;
     let limit = +req.query.limit || 20;
