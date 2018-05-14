@@ -224,31 +224,24 @@ router.post('/', co(async (req, res, next) => {
         people_user_id: req.decoded.people_user_id
       }
 
-      let rsSummary = await receiveModel.saveReceiveSummary(db, data);
+        let rsSummary = await receiveModel.saveReceiveSummary(db, data);
 
-      products.forEach((v: any) => {
+        products.forEach((v: any) => {
 
-        let pdata: any = {
-          receive_id: rsSummary[0],
-          product_id: v.product_id,
-          receive_qty: +v.receive_qty,
-          lot_no: v.lot_no,
-          expired_date: moment(v.expired_date, 'DD/MM/YYYY').isValid() ? moment(v.expired_date, 'DD/MM/YYYY').format('YYYY-MM-DD') : null
-        }
+          let pdata: any = {
+            receive_id: rsSummary[0],
+            product_id: v.product_id,
+            receive_qty: +v.receive_qty,
+            lot_no: v.lot_no,
+            expired_date: moment(v.expired_date, 'DD/MM/YYYY').isValid() ? moment(v.expired_date, 'DD/MM/YYYY').format('YYYY-MM-DD') : null
+          }
 
-        productsData.push(pdata);
-      });
+          productsData.push(pdata);
+        });
 
-      await receiveModel.saveReceiveDetail(db, productsData);
-      res.send({ ok: true });
-      //           }
-      //         }
+        await receiveModel.saveReceiveDetail(db, productsData);
+        res.send({ ok: true });
 
-      //         // if (summary.purchaseId) {
-      //         //   await receiveModel.savePurchaseStatus(db, receiveId, summary.purchaseId);
-      //         // }
-
-      //       }
     } catch (error) {
       res.send({ ok: false, error: error.message });
     } finally {

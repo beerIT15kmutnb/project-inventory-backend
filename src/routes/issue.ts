@@ -28,6 +28,80 @@ router.get('/getTransactionIssues', co(async (req, res, next) => {
     db.destroy();
   }
 }));
+
+router.put('/saveIssue', co(async (req, res, next) => {
+  let db = req.db;
+  const summary = req.body.summary;
+  const products = req.body.products;
+  let issueCode: null;
+  let _issueCode: any;
+  let _issueTmpCode: null;
+  let productsData: any = [];
+  const decoded = req.decoded
+  try {
+    const totalReceive = await issueModel.getSerial(db);
+    if (totalReceive[0]) {
+      _issueCode = 'iss-'
+      var pad_char = '0';
+      var pad = new Array(1 + 8).join(pad_char);
+      _issueCode += (pad + totalReceive[0].total).slice(-pad.length);
+    }
+    _issueTmpCode = _issueCode;
+    if (summary.issueCode) {
+      issueCode = summary.issueCode;
+    } else {
+      issueCode = _issueCode;
+    }
+    const data: any = {
+      issue_code: issueCode,
+      issue_date: summary.issueDate,
+      transaction_issue_id: summary.transactionId,
+      comment: summary.comment,
+      people_user_id: req.decoded.people_user_id
+    }
+    let rsSummary = await issueModel.saveIssueSummary(db, data);
+
+    products.forEach((v: any) => {
+      let pdata: any = {
+        issue_id: rsSummary[0],
+        product_id: v.product_id,
+        qty: +v.issue_qty,
+      }
+      productsData.push(pdata);
+    });
+
+    await issueModel.saveIssueDetail(db, productsData);
+    res.send({ ok: true });
+  } catch (error) {
+    res.send({ ok: false, error: error.message });
+  } finally {
+    db.destroy();
+  }
+}))
+router.get('/setIssueDetail/:issueId', co(async (req, res, next) => {
+  let db = req.db;
+  let issue_id = req.params.issueId;
+  try {
+    let rs = await issueModel.setIssueDetail(db,issue_id);
+    res.send({ok:true,rows:rs})
+  } catch (error) {
+    res.send({ ok: false, error: error.message })
+  } finally {
+    db.destroy();
+  }
+}))
+router.get('/setIssues/:issueId', co(async (req, res, next) => {
+  let db = req.db;
+  let issue_id = req.params.issueId;
+  try {
+    let rs = await issueModel.setIssues(db,issue_id);
+    res.send({ok:true,rows:rs})
+  } catch (error) {
+    res.send({ ok: false, error: error.message })
+  } finally {
+    db.destroy();
+  }
+}))
 // router.post('/', co(async (req, res, next) => {
 
 //   let db = req.db;
@@ -138,66 +212,42 @@ router.get('/getTransactionIssues', co(async (req, res, next) => {
 
 // }));
 
-// router.put('/:issueId', co(async (req, res, next) => {
+router.put('/update/:issueId', co(async (req, res, next) => {
 
-//   let db = req.db;
-//   let summary = req.body.summary;
-//   let products = req.body.products;
-//   let issueId = req.params.issueId;
+  let db = req.db;
+  let summary = req.body.summary;
+  let products = req.body.products;
+  let issueId = req.params.issueId;
+  let productsData: any = [];
+  try {
+    let _summary: any = {};
+    _summary.issue_date = summary.issueDate;
+    _summary.transaction_issue_id = summary.transactionId;
+    _summary.comment = summary.comment;
+    _summary.people_user_id = req.decoded.people_user_id,
+      // _summary.created_at = moment().format('YYYY-MM-DD HH:mm:ss');
 
-//   try {
-//     let _summary: any = {};
-//     _summary.issue_date = summary.issueDate;
-//     _summary.transaction_issue_id = summary.transactionId;
-//     _summary.comment = summary.comment;
-//     _summary.people_user_id = req.decoded.people_user_id,
-//       _summary.created_at = moment().format('YYYY-MM-DD HH:mm:ss');
-//     _summary.ref_document = summary.refDocument;
+    await issueModel.updateSummary(db, issueId, _summary);
+    await issueModel.removeProduct(db, issueId);
+    products.forEach((v: any) => {
+      let pdata: any = {
+        issue_id: issueId,
+        product_id: v.product_id,
+        qty: +v.issue_qty,
+      }
+      productsData.push(pdata);
+    });
 
-//     // let serialCode = await serialModel.getSerial(db, 'ST');
-//     // _summary.issue_code = serialCode;
+    await issueModel.saveIssueDetail(db, productsData);
 
-//     await issueModel.updateSummary(db, issueId, _summary);
-//     await issueModel.removeGenerics(db, issueId);
-//     let _cutProduct = [];
-//     let _genericIds = [];
+    res.send({ ok: true });
+  } catch (error) {
+    res.send({ ok: false, error: error.message });
+  } finally {
+    db.destroy();
+  }
 
-//     for (let v of products) {
-//       let _generics = [];
-//       let obj: any = {};
-//       obj.qty = +v.issue_qty * +v.conversion_qty;
-//       obj.unit_generic_id = v.unit_generic_id;
-//       obj.issue_id = issueId;
-//       obj.generic_id = v.generic_id;
-//       _genericIds.push(v.generic_id);
-//       _generics.push(obj);
-//       let issue_generic_id = await issueModel.saveGenerics(db, _generics);
-//       for (let e of v.items) {
-//         if (e.product_qty > 0) {
-//           let objP: any = {};
-//           let cutProduct: any = {};
-//           let _products = [];
-//           objP.issue_generic_id = issue_generic_id;
-//           objP.product_id = e.product_id;
-//           objP.qty = e.product_qty; // base
-//           objP.wm_product_id = e.wm_product_id;
-//           cutProduct.cutQty = e.product_qty; // base
-//           cutProduct.wm_product_id = e.wm_product_id;
-//           _products.push(objP);
-//           _cutProduct.push(cutProduct);
-//           await issueModel.saveProducts(db, _products);
-//         }
-//       }
-//     }
-
-//     res.send({ ok: true });
-//   } catch (error) {
-//     res.send({ ok: false, error: error.message });
-//   } finally {
-//     db.destroy();
-//   }
-
-// }));
+}));
 
 // router.post('/approve', co(async (req, res, next) => {
 

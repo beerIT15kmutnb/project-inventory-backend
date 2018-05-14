@@ -2,7 +2,7 @@ import Knex = require('knex');
 import * as moment from 'moment';
 
 export class IssueModel {
-  getTransactionIssues(knex: Knex){
+  getTransactionIssues(knex: Knex) {
     return knex('wm_transaction_issues')
 
   }
@@ -11,9 +11,9 @@ export class IssueModel {
     return knex('wm_issue_summary')
       .insert(data, 'issue_id');
   }
-
+//use
   updateSummary(knex: Knex, issueId: any, data: any) {
-    return knex('wm_issue_summary')
+    return knex('wm_issues')
       .where('issue_id', issueId)
       .update(data);
   }
@@ -46,12 +46,11 @@ export class IssueModel {
       .where('issue_id', issueId)
       .del();
   }
-
-  removeGenerics(knex: Knex, issueId: any) {
-    return knex.raw(`DELETE sp,sg
-    FROM wm_issue_generics sg
-    INNER JOIN wm_issue_products sp ON sg.issue_generic_id = sp.issue_generic_id
-    WHERE sg.issue_id = ${issueId}`)
+//use
+  removeProduct(knex: Knex, issueId: any) {
+    return knex.raw(`DELETE ip
+    FROM wm_issue_products as ip
+    WHERE ip.issue_id = ${issueId}`)
   }
 
   removeIssueSummary(knex: Knex, issueId: any, data: any) {
@@ -133,7 +132,53 @@ export class IssueModel {
     sg.issue_id = '${issueId}'`
     return knex.raw(sql)
   }
+  getSerial(knex: Knex) {
+    return knex('wm_issues')
+      .count('* as total')
+  }
+  saveIssueSummary(kenx: Knex, data: any) {
+    return kenx('wm_issues')
+      .insert(data, 'issue_id')
 
+  }
+  saveIssueDetail(kenx: Knex, data: any) {
+    return kenx('wm_issue_products')
+      .insert(data)
+  }
+  setIssueDetail(knex: Knex, issue_id: any) {
+    let sql = `SELECT
+    ip.*,
+    mp.product_name,
+    IFNULL( q.remainQty, 0 ) AS remainQty,
+    q.small_qty,
+    q.sm,
+    q.lm 
+  FROM
+    wm_issue_products AS ip
+    LEFT JOIN mm_products AS mp ON mp.product_id = ip.product_id
+    LEFT JOIN (
+  SELECT
+    sum( wp.qty ) AS remainQty,
+    mp.small_qty,
+    ug1.unit_name AS sm,
+    ug2.unit_name AS lm,
+    wp.product_id 
+  FROM
+    mm_products AS mp
+    LEFT JOIN wm_products AS wp ON wp.product_id = mp.product_id
+    LEFT JOIN mm_units AS ug1 ON ug1.unit_id = mp.small_unit_id
+    LEFT JOIN mm_units AS ug2 ON ug2.unit_id = mp.large_unit_id 
+  GROUP BY
+    mp.product_id 
+    ) AS q ON q.product_id = ip.product_id 
+  WHERE
+    ip.issue_id = ${issue_id} `
+    return knex.raw(sql)
+  }
+  setIssues(knex: Knex, issue_id: any) {
+    return knex('wm_issues')
+      .where('issue_id', issue_id)
+  }
   getList(knex: Knex, limit: number = 15, offset: number = 0, status: any = '') {
 
     let subQuery = knex('wm_issue_generics as sd')
@@ -153,7 +198,7 @@ export class IssueModel {
     return query.limit(limit).offset(offset);
 
   }
-//use
+  //use
   getListIssues(knex: Knex, limit: number = 15, offset: number = 0, status: any = '') {
 
     let subQuery = knex('wm_issue_products as sd')
@@ -173,8 +218,8 @@ export class IssueModel {
     return query.limit(limit).offset(offset);
 
   }
-// use
-  getListTotal(knex: Knex, status: any = '',) {
+  // use
+  getListTotal(knex: Knex, status: any = '', ) {
     let query = knex('wm_issues as ss')
       .select(knex.raw('count(*) as total'))
     if (status) {

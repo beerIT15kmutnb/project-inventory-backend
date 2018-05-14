@@ -28,6 +28,116 @@ router.get('/getTransactionIssues', co((req, res, next) => __awaiter(this, void 
         db.destroy();
     }
 })));
+router.put('/saveIssue', co((req, res, next) => __awaiter(this, void 0, void 0, function* () {
+    let db = req.db;
+    const summary = req.body.summary;
+    const products = req.body.products;
+    let issueCode;
+    let _issueCode;
+    let _issueTmpCode;
+    let productsData = [];
+    const decoded = req.decoded;
+    try {
+        const totalReceive = yield issueModel.getSerial(db);
+        if (totalReceive[0]) {
+            _issueCode = 'iss-';
+            var pad_char = '0';
+            var pad = new Array(1 + 8).join(pad_char);
+            _issueCode += (pad + totalReceive[0].total).slice(-pad.length);
+        }
+        _issueTmpCode = _issueCode;
+        if (summary.issueCode) {
+            issueCode = summary.issueCode;
+        }
+        else {
+            issueCode = _issueCode;
+        }
+        const data = {
+            issue_code: issueCode,
+            issue_date: summary.issueDate,
+            transaction_issue_id: summary.transactionId,
+            comment: summary.comment,
+            people_user_id: req.decoded.people_user_id
+        };
+        let rsSummary = yield issueModel.saveIssueSummary(db, data);
+        products.forEach((v) => {
+            let pdata = {
+                issue_id: rsSummary[0],
+                product_id: v.product_id,
+                qty: +v.issue_qty,
+            };
+            productsData.push(pdata);
+        });
+        yield issueModel.saveIssueDetail(db, productsData);
+        res.send({ ok: true });
+    }
+    catch (error) {
+        res.send({ ok: false, error: error.message });
+    }
+    finally {
+        db.destroy();
+    }
+})));
+router.get('/setIssueDetail/:issueId', co((req, res, next) => __awaiter(this, void 0, void 0, function* () {
+    let db = req.db;
+    let issue_id = req.params.issueId;
+    try {
+        let rs = yield issueModel.setIssueDetail(db, issue_id);
+        res.send({ ok: true, rows: rs });
+    }
+    catch (error) {
+        res.send({ ok: false, error: error.message });
+    }
+    finally {
+        db.destroy();
+    }
+})));
+router.get('/setIssues/:issueId', co((req, res, next) => __awaiter(this, void 0, void 0, function* () {
+    let db = req.db;
+    let issue_id = req.params.issueId;
+    try {
+        let rs = yield issueModel.setIssues(db, issue_id);
+        res.send({ ok: true, rows: rs });
+    }
+    catch (error) {
+        res.send({ ok: false, error: error.message });
+    }
+    finally {
+        db.destroy();
+    }
+})));
+router.put('/update/:issueId', co((req, res, next) => __awaiter(this, void 0, void 0, function* () {
+    let db = req.db;
+    let summary = req.body.summary;
+    let products = req.body.products;
+    let issueId = req.params.issueId;
+    let productsData = [];
+    try {
+        let _summary = {};
+        _summary.issue_date = summary.issueDate;
+        _summary.transaction_issue_id = summary.transactionId;
+        _summary.comment = summary.comment;
+        _summary.people_user_id = req.decoded.people_user_id,
+            yield issueModel.updateSummary(db, issueId, _summary);
+        yield issueModel.removeProduct(db, issueId);
+        products.forEach((v) => {
+            let pdata = {
+                issue_id: issueId,
+                product_id: v.product_id,
+                qty: +v.issue_qty,
+            };
+            productsData.push(pdata);
+        });
+        yield issueModel.saveIssueDetail(db, productsData);
+        res.send({ ok: true });
+    }
+    catch (error) {
+        res.send({ ok: false, error: error.message });
+    }
+    finally {
+        db.destroy();
+    }
+})));
 router.get('/', co((req, res, next) => __awaiter(this, void 0, void 0, function* () {
     let db = req.db;
     let limit = +req.query.limit || 20;

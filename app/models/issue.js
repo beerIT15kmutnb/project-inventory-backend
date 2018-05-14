@@ -9,7 +9,7 @@ class IssueModel {
             .insert(data, 'issue_id');
     }
     updateSummary(knex, issueId, data) {
-        return knex('wm_issue_summary')
+        return knex('wm_issues')
             .where('issue_id', issueId)
             .update(data);
     }
@@ -38,11 +38,10 @@ class IssueModel {
             .where('issue_id', issueId)
             .del();
     }
-    removeGenerics(knex, issueId) {
-        return knex.raw(`DELETE sp,sg
-    FROM wm_issue_generics sg
-    INNER JOIN wm_issue_products sp ON sg.issue_generic_id = sp.issue_generic_id
-    WHERE sg.issue_id = ${issueId}`);
+    removeProduct(knex, issueId) {
+        return knex.raw(`DELETE ip
+    FROM wm_issue_products as ip
+    WHERE ip.issue_id = ${issueId}`);
     }
     removeIssueSummary(knex, issueId, data) {
         return knex('wm_issue_summary')
@@ -118,6 +117,52 @@ class IssueModel {
     WHERE
     sg.issue_id = '${issueId}'`;
         return knex.raw(sql);
+    }
+    getSerial(knex) {
+        return knex('wm_issues')
+            .count('* as total');
+    }
+    saveIssueSummary(kenx, data) {
+        return kenx('wm_issues')
+            .insert(data, 'issue_id');
+    }
+    saveIssueDetail(kenx, data) {
+        return kenx('wm_issue_products')
+            .insert(data);
+    }
+    setIssueDetail(knex, issue_id) {
+        let sql = `SELECT
+    ip.*,
+    mp.product_name,
+    IFNULL( q.remainQty, 0 ) AS remainQty,
+    q.small_qty,
+    q.sm,
+    q.lm 
+  FROM
+    wm_issue_products AS ip
+    LEFT JOIN mm_products AS mp ON mp.product_id = ip.product_id
+    LEFT JOIN (
+  SELECT
+    sum( wp.qty ) AS remainQty,
+    mp.small_qty,
+    ug1.unit_name AS sm,
+    ug2.unit_name AS lm,
+    wp.product_id 
+  FROM
+    mm_products AS mp
+    LEFT JOIN wm_products AS wp ON wp.product_id = mp.product_id
+    LEFT JOIN mm_units AS ug1 ON ug1.unit_id = mp.small_unit_id
+    LEFT JOIN mm_units AS ug2 ON ug2.unit_id = mp.large_unit_id 
+  GROUP BY
+    mp.product_id 
+    ) AS q ON q.product_id = ip.product_id 
+  WHERE
+    ip.issue_id = ${issue_id} `;
+        return knex.raw(sql);
+    }
+    setIssues(knex, issue_id) {
+        return knex('wm_issues')
+            .where('issue_id', issue_id);
     }
     getList(knex, limit = 15, offset = 0, status = '') {
         let subQuery = knex('wm_issue_generics as sd')

@@ -6,8 +6,6 @@ import * as favicon from 'serve-favicon';
 import * as logger from 'morgan';
 import * as cookieParser from 'cookie-parser';
 import * as bodyParser from 'body-parser';
-import { Jwt } from './models/jwt';
-const jwt = new Jwt();
 import * as cors from 'cors';
 import * as fse from 'fs-extra';
 import * as _ from 'lodash';
@@ -16,6 +14,9 @@ import * as _ from 'lodash';
 
 import Knex = require('knex');
 import { MySqlConnectionConfig } from 'knex';
+
+import { Jwt } from './models/jwt';
+const jwt = new Jwt();
 
 import index from './routes/index';
 import product from './routes/products';
@@ -83,7 +84,7 @@ app.use((req, res, next) => {
         });
       }
     },
-    debug: process.env.SQL_DEBUG || true,
+    debug: true,
     acquireConnectionTimeout: 5000
   });
 

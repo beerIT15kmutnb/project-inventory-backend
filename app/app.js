@@ -6,10 +6,10 @@ const path = require("path");
 const logger = require("morgan");
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
-const jwt_1 = require("./models/jwt");
-const jwt = new jwt_1.Jwt();
 const cors = require("cors");
 const Knex = require("knex");
+const jwt_1 = require("./models/jwt");
+const jwt = new jwt_1.Jwt();
 const index_1 = require("./routes/index");
 const products_1 = require("./routes/products");
 const login_1 = require("./routes/login");
@@ -69,7 +69,7 @@ app.use((req, res, next) => {
                 });
             }
         },
-        debug: process.env.SQL_DEBUG || true,
+        debug: true,
         acquireConnectionTimeout: 5000
     });
     next();
