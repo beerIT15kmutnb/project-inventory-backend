@@ -29,6 +29,20 @@ router.get('/getList', wrap((req, res, next) => __awaiter(this, void 0, void 0, 
         db.destroy();
     }
 })));
+router.get('/getLot', wrap((req, res, next) => __awaiter(this, void 0, void 0, function* () {
+    let db = req.db;
+    let productId = req.query.productId;
+    try {
+        let products = yield productModel.getLot(db, productId);
+        res.send({ ok: true, data: products });
+    }
+    catch (error) {
+        res.send({ ok: false, error: error.message });
+    }
+    finally {
+        db.destroy();
+    }
+})));
 router.post('/remain', wrap((req, res, next) => __awaiter(this, void 0, void 0, function* () {
     let db = req.db;
     let product_id = req.body.product_id;

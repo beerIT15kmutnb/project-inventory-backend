@@ -4,6 +4,24 @@ class ProductModel {
     getList(knex) {
         return knex('generic_types');
     }
+    getLot(knex, productId) {
+        let sql = `SELECT
+    wp.product_id,
+      wp.wm_product_id,
+      sum( wp.qty ) as remainQty,
+      wp.lot_no,
+      wp.expired_date
+    FROM
+      wm_products AS wp 
+      WHERE
+      wp.product_id = ${productId}
+    GROUP BY
+      wp.product_id,
+      wp.lot_no 
+      ORDER BY
+      wp.expired_date`;
+        return knex.raw(sql);
+    }
     adminGetAllProducts(knex, limit, offset) {
         let query = `SELECT
         g.generic_code,
