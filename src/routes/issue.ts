@@ -37,6 +37,7 @@ router.put('/saveIssue', co(async (req, res, next) => {
   let _issueCode: any;
   let _issueTmpCode: null;
   let productsData: any = [];
+  let productsDetail: any = [];
   const decoded = req.decoded
   try {
     const totalReceive = await issueModel.getSerial(db);
@@ -57,20 +58,49 @@ router.put('/saveIssue', co(async (req, res, next) => {
       issue_date: summary.issueDate,
       transaction_issue_id: summary.transactionId,
       comment: summary.comment,
-      people_user_id: req.decoded.people_user_id
+      people_user_id: req.decoded.people_user_id,
+      create_date: moment().format('YYYY-MM-DD'),
     }
     let rsSummary = await issueModel.saveIssueSummary(db, data);
+    console.log();
 
-    products.forEach((v: any) => {
+    for (let v of products) {
       let pdata: any = {
         issue_id: rsSummary[0],
         product_id: v.product_id,
-        qty: +v.issue_qty,
+        qty: +v.issue_qty
       }
-      productsData.push(pdata);
-    });
+      let ipId = await issueModel.saveIssueDetail(db, pdata);
 
-    await issueModel.saveIssueDetail(db, productsData);
+      for (let e of v.items) {
+        let pdetail: any
+        if (e.qty > 0) {
+          pdetail = {
+            issue_product_id: ipId[0],
+            product_id: e.product_id,
+            lot_no: e.lot_no,
+            qty: e.qty,
+            wm_product_id: e.wm_product_id
+          }
+        }
+        await issueModel.saveIssueProductDetail(db, pdetail);
+      }
+    }
+    // products.forEach((v: any) => {
+    //   let pdata: any = {
+    //     issue_id: rsSummary[0],
+    //     product_id: v.product_id,
+    //     qty: +v.issue_qty
+    //   }
+    //   _.forEach(v.items, (vd) => {
+    //     let pdetail: any = {
+
+    //     }
+    //   })
+    //   productsData.push(pdata);
+    // });
+
+    // await issueModel.saveIssueDetail(db, productsData);
     res.send({ ok: true });
   } catch (error) {
     res.send({ ok: false, error: error.message });
@@ -82,8 +112,20 @@ router.get('/setIssueDetail/:issueId', co(async (req, res, next) => {
   let db = req.db;
   let issue_id = req.params.issueId;
   try {
-    let rs = await issueModel.setIssueDetail(db,issue_id);
-    res.send({ok:true,rows:rs})
+    let rs = await issueModel.setIssueDetail(db, issue_id);
+    res.send({ ok: true, rows: rs })
+  } catch (error) {
+    res.send({ ok: false, error: error.message })
+  } finally {
+    db.destroy();
+  }
+}))
+router.get('/setIssueProductDetail/:issuePId', co(async (req, res, next) => {
+  let db = req.db;
+  let issuePId = req.params.issuePId;
+  try {
+    let rs = await issueModel.setIssueProductDetail(db, issuePId);
+    res.send({ ok: true, rows: rs })
   } catch (error) {
     res.send({ ok: false, error: error.message })
   } finally {
@@ -94,8 +136,8 @@ router.get('/setIssues/:issueId', co(async (req, res, next) => {
   let db = req.db;
   let issue_id = req.params.issueId;
   try {
-    let rs = await issueModel.setIssues(db,issue_id);
-    res.send({ok:true,rows:rs})
+    let rs = await issueModel.setIssues(db, issue_id);
+    res.send({ ok: true, rows: rs })
   } catch (error) {
     res.send({ ok: false, error: error.message })
   } finally {
@@ -227,7 +269,7 @@ router.put('/update/:issueId', co(async (req, res, next) => {
     _summary.people_user_id = req.decoded.people_user_id,
       // _summary.created_at = moment().format('YYYY-MM-DD HH:mm:ss');
 
-    await issueModel.updateSummary(db, issueId, _summary);
+      await issueModel.updateSummary(db, issueId, _summary);
     await issueModel.removeProduct(db, issueId);
     products.forEach((v: any) => {
       let pdata: any = {
@@ -249,73 +291,54 @@ router.put('/update/:issueId', co(async (req, res, next) => {
 
 }));
 
-// router.post('/approve', co(async (req, res, next) => {
+router.post('/approveIssue', co(async (req, res, next) => {
 
-//   let db = req.db;
-//   let issueIds = req.body.issueIds;
-//   try {
-//     const decoded = req.decoded;
-//     const warehouseId = decoded.warehouseId;
+  let db = req.db;
+  let issueIds = req.body.issueId;
+  try {
+    const decoded = req.decoded;
+    const warehouseId = decoded.warehouseId;
+    console.log(issueIds);
 
-//     for (let v of issueIds) {
-//       let summary = {
-//         approved: 'Y',
-//         approve_date: moment().format('YYYY-MM-DD'),
-//         approve_people_user_id: req.decoded.people_user_id
-//       }
+    for (let v of issueIds) {
+      let summary = {
+        is_approve: 'Y',
+        approve_date: moment().format('YYYY-MM-DD'),
+        approve_people_user_id: req.decoded.people_user_id
+      }
 
-//       let rs = await issueModel.getIssueApprove(db, v, warehouseId);
+      let rs = await issueModel.getIssueApprove(db, v, warehouseId);
+      let data = [];
+      let _cutProduct = [];
+console.log(rs.out_qty+"----------------------");
 
-//       let data = [];
-//       let _cutProduct = [];
+      rs[0].forEach(e => {
+        if (e.out_qty != 0) {
+          let cutProduct: any = {};
+          cutProduct.cutQty = e.out_qty > e.balance_qty ? e.balance_qty : e.out_qty ;
+          cutProduct.wm_product_id = e.wm_product_id;
+          _cutProduct.push(cutProduct);
+        }
+      });
+      console.log(_cutProduct+"++++++++++++++++++++");
 
-//       rs[0].forEach(e => {
-//         if (rs.out_qty != 0) {
-//           let objStockcard: any = {};
-//           let cutProduct: any = {};
-//           objStockcard.stock_date = moment().format('YYYY-MM-DD HH:mm:ss');
-//           objStockcard.product_id = e.product_id;
-//           objStockcard.generic_id = e.generic_id;
-//           objStockcard.unit_generic_id = e.unit_generic_id;
-//           objStockcard.transaction_type = TransactionType.ISSUE_TRANSACTION;
-//           objStockcard.document_ref_id = e.issue_id;
-//           objStockcard.document_ref = e.issue_code;
-//           objStockcard.in_qty = 0;
-//           objStockcard.in_unit_cost = 0;
-//           objStockcard.out_qty = e.out_qty;
-//           objStockcard.out_unit_cost = e.out_unit_cost;
-//           objStockcard.balance_qty = e.balance_qty;
-//           objStockcard.balance_unit_cost = e.balance_unit_cost;
-//           objStockcard.ref_src = warehouseId;
-//           objStockcard.ref_dst = e.ref_src;
-//           objStockcard.comment = e.transaction_name;
-//           objStockcard.balance_generic_qty = e.balance_generic;
-//           objStockcard.lot_no = e.lot_no;
-//           objStockcard.expired_date = e.expired_date;
-//           data.push(objStockcard)
-//           cutProduct.cutQty = e.out_qty;
-//           cutProduct.wm_product_id = e.wm_product_id;
-//           _cutProduct.push(cutProduct);
-//         }
-//       });
+      await issueModel.updateSummaryApprove(db, v, summary);
+      // update wm_product
+      await issueModel.saveProductStock(db, _cutProduct);
+      //       await stockCardModel.saveFastStockTransaction(db, data);
+    }
 
-//       await issueModel.updateSummaryApprove(db, v, summary);
-//       // update wm_product
-//       await issueModel.saveProductStock(db, _cutProduct);
-//       await stockCardModel.saveFastStockTransaction(db, data);
-//     }
+    res.send({ ok: true });
 
-//     res.send({ ok: true });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message });
+    // throw error;
+  } finally {
+    db.destroy();
+  }
 
-//   } catch (error) {
-//     console.log(error);
-//     res.send({ ok: false, error: error.message });
-//     // throw error;
-//   } finally {
-//     db.destroy();
-//   }
-
-// }));
+}));
 
 // router.delete('/:issueId', co(async (req, res, next) => {
 
@@ -414,6 +437,20 @@ router.put('/update/:issueId', co(async (req, res, next) => {
 
 // }));
 // use
+
+router.get('/listDetail', co(async (req, res, next) => {
+  let db = req.db;
+  let id = req.query.id
+
+  try {
+    let rs = await issueModel.setIssueDetail(db,id);
+    res.send({ ok: true, rows: rs,});
+  } catch (error) {
+    res.send({ ok: false, error: error.message });
+  } finally {
+    db.destroy();
+  }
+}));
 router.get('/', co(async (req, res, next) => {
   let db = req.db;
   let limit = +req.query.limit || 20;
@@ -423,11 +460,8 @@ router.get('/', co(async (req, res, next) => {
   try {
     let rs = await issueModel.getListIssues(db, +limit, offset, status);
     let rsTotal = await issueModel.getListTotal(db, status);
-    console.log('++++++', rs, rsTotal);
     res.send({ ok: true, rows: rs, total: +rsTotal[0].total });
   } catch (error) {
-    console.log('-----------');
-
     res.send({ ok: false, error: error.message });
   } finally {
     db.destroy();

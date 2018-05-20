@@ -14,7 +14,7 @@ class IssueModel {
             .update(data);
     }
     updateSummaryApprove(knex, issueIds, data) {
-        return knex('wm_issue_summary')
+        return knex('wm_issues')
             .whereIn('issue_id', issueIds)
             .update(data);
     }
@@ -130,6 +130,39 @@ class IssueModel {
         return kenx('wm_issue_products')
             .insert(data);
     }
+    saveIssueProductDetail(kenx, data) {
+        return kenx('wm_issue_product_detail')
+            .insert(data);
+    }
+    setIssueProductDetail(knex, issuePId) {
+        let sql = `SELECT
+    ipd.*,
+    wp.remainQty AS remainQty,
+    wp.remainQty - ipd.qty AS remainQtyB,
+    wp.expired_date 
+    
+  FROM
+    wm_issue_products AS ip
+    LEFT JOIN wm_issue_product_detail AS ipd ON ip.issue_product_id = ipd.issue_product_id
+    LEFT JOIN (
+  SELECT
+    wp.product_id,
+    wp.wm_product_id,
+    sum( wp.qty ) AS remainQty,
+    wp.lot_no,
+    wp.expired_date 
+  FROM
+    wm_products AS wp 
+  GROUP BY
+    wp.product_id,
+    wp.lot_no 
+  ORDER BY
+    wp.expired_date 
+    ) AS wp ON wp.wm_product_id = ipd.wm_product_id 
+  WHERE
+    ip.issue_product_id = ${issuePId}`;
+        return knex.raw(sql);
+    }
     setIssueDetail(knex, issue_id) {
         let sql = `SELECT
     ip.*,
@@ -177,6 +210,20 @@ class IssueModel {
             query.where('ss.approved', status);
         }
         return query.limit(limit).offset(offset);
+    }
+    getListIssuesDetail(knex, id) {
+        let subQuery = knex('wm_issue_products as sd')
+            .select(knex.raw('count(*) as total'))
+            .whereRaw('sd.issue_id=ss.issue_id')
+            .as('total');
+        let query = knex('wm_issues as ss')
+            .select('ss.*', 'ts.transaction_name', subQuery)
+            .leftJoin('wm_transaction_issues as ts', 'ts.transaction_id', 'ss.transaction_issue_id')
+            .where('ss.issue_id', id);
+        if (status) {
+            query.where('ss.is_approve', status);
+        }
+        return query;
     }
     getListIssues(knex, limit = 15, offset = 0, status = '') {
         let subQuery = knex('wm_issue_products as sd')
@@ -247,72 +294,25 @@ class IssueModel {
     }
     getIssueApprove(knex, id, warehouseId) {
         let sql = `SELECT
-    sg.generic_id,
     sp.product_id,
-    wp.unit_generic_id,
     ss.issue_code,
     ss.issue_id,
     sp.qty AS out_qty,
-    wp.cost AS out_unit_cost,
     sp.wm_product_id,
     wp.lot_no,
-    wp.expired_date,  
-    (
-      SELECT
-        sum(wp2.qty)
-      FROM
-        wm_products wp2
-      WHERE
-        wp2.product_id = sp.product_id
-      AND wp2.warehouse_id = '${warehouseId}'
-      GROUP BY
-        wp2.product_id
-    )-sp.qty AS balance_qty,
-  (
-      SELECT
-        avg(wp2.cost)
-      FROM
-        wm_products wp2
-      WHERE
-        wp2.product_id = sp.product_id
-      AND wp2.warehouse_id = '${warehouseId}'
-      GROUP BY
-        wp2.product_id
-    ) AS balance_unit_cost,
-    (
-      SELECT
-        sum(wp.qty)
-      FROM
-        wm_products wp
-      WHERE
-        wp.product_id IN (
-          SELECT
-            mp.product_id
-          FROM
-            mm_products mp
-          WHERE
-            mp.generic_id IN (
-              SELECT
-                generic_id
-              FROM
-                mm_products mp
-              WHERE
-                mp.product_id = sp.product_id
-            )
-        )
-      AND wp.warehouse_id = '${warehouseId}'
-      GROUP BY
-        wp.warehouse_id
-    )-sp.qty AS balance_generic,
-    ss.issue_id as ref_src,
-    ts.transaction_name
+    wp.expired_date,
+    ( SELECT sum( wp2.qty ) FROM wm_products wp2 WHERE wp2.wm_product_id = sp.wm_product_id ) balance_qty,
+    ss.issue_id AS ref_src,
+    ts.transaction_name 
   FROM
-    wm_issue_summary ss
-  JOIN wm_issue_generics sg ON ss.issue_id = sg.issue_id
-  JOIN wm_issue_products sp ON sg.issue_generic_id = sp.issue_generic_id
-  JOIN wm_products wp ON sp.wm_product_id = wp.wm_product_id
-  JOIN wm_transaction_issues ts ON ss.transaction_issue_id = ts.transaction_id
-  where ss.issue_id ='${id}' and sp.qty != 0`;
+    wm_issues ss
+    JOIN wm_issue_products sg ON ss.issue_id = sg.issue_id
+    LEFT JOIN wm_issue_product_detail sp ON sg.issue_product_id = sp.issue_product_id
+    LEFT JOIN wm_products wp ON sp.wm_product_id = wp.wm_product_id
+    LEFT JOIN wm_transaction_issues ts ON ss.transaction_issue_id = ts.transaction_id 
+  WHERE
+    ss.issue_id = ${id} 
+    AND sp.qty != 0`;
         return knex.raw(sql);
     }
     getProductIssues(knex, id) {
