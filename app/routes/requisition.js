@@ -13,7 +13,9 @@ const moment = require("moment");
 const co = require("co-express");
 const requisition_1 = require("../models/requisition");
 const serial_1 = require("../models/serial");
+const issue_1 = require("../models/issue");
 const router = express.Router();
+const issueModel = new issue_1.IssueModel();
 const requisitionModel = new requisition_1.RequisitionModel();
 const serialModel = new serial_1.SerialModel();
 router.get('/orders/waiting', co((req, res, next) => __awaiter(this, void 0, void 0, function* () {
@@ -56,6 +58,68 @@ router.get('/orders/setReqsDetail/:id', co((req, res, next) => __awaiter(this, v
     try {
         let rs = yield requisitionModel.setReqsDetail(db, id);
         res.send({ ok: true, rows: rs });
+    }
+    catch (error) {
+        res.send({ ok: false, error: error.message });
+    }
+    finally {
+        db.destroy();
+    }
+})));
+router.get('/orders/setReqsProductDetail/:id', co((req, res, next) => __awaiter(this, void 0, void 0, function* () {
+    let db = req.db;
+    let id = req.params.id;
+    try {
+        let rs = yield requisitionModel.setReqsProductDetail(db, id);
+        res.send({ ok: true, rows: rs });
+    }
+    catch (error) {
+        res.send({ ok: false, error: error.message });
+    }
+    finally {
+        db.destroy();
+    }
+})));
+router.put('/orders/approveRequisitionOrder/:id', co((req, res, next) => __awaiter(this, void 0, void 0, function* () {
+    let db = req.db;
+    let order = {};
+    let id = req.params.id;
+    let products = req.body.products;
+    let people_id = req.decoded.people_id;
+    try {
+        order.is_approve = 'Y';
+        order.user_confirm_id = people_id;
+        order.confirm_date = moment().format('YYYY-MM-DD HH:mm:ss');
+        yield requisitionModel.updateOrder(db, id, order);
+        console.log(JSON.stringify(products));
+        let item = [];
+        for (let p of products) {
+            let items = [];
+            p.items.forEach((v) => {
+                if (v.qty > 0) {
+                    let obj = {
+                        requisition_order_id: id,
+                        wm_product_id: v.wm_product_id,
+                        confirm_qty: v.qty
+                    };
+                    items.push(obj);
+                }
+            });
+            yield requisitionModel.saveItemsDetail(db, items);
+            let _cutProduct = [];
+            items.forEach(e => {
+                if (e.confirm_qty != 0) {
+                    let cutProduct = {};
+                    cutProduct.cutQty = e.confirm_qty;
+                    cutProduct.wm_product_id = e.wm_product_id;
+                    _cutProduct.push(cutProduct);
+                }
+            });
+            yield issueModel.saveProductStock(db, _cutProduct);
+        }
+        console.log('++++++');
+        console.log(item);
+        res.send({ ok: true });
     }
     catch (error) {
         res.send({ ok: false, error: error.message });

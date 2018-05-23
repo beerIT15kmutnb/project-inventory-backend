@@ -80,6 +80,21 @@ export class RequisitionModel {
     .where('requisition_order_id', id)
     .del();
   }
+  saveItemsDetail(knex: Knex, data: any) {
+    let sqls = [];    
+    for(let datas of data){
+      let sql = `
+    INSERT INTO wm_requisition_confirm_item
+          (requisition_order_id, wm_product_id,confirm_qty)
+          VALUES( ${datas.requisition_order_id}, '${datas.wm_product_id}',${datas.confirm_qty})
+          ON DUPLICATE KEY UPDATE
+          confirm_qty = ${datas.confirm_qty}
+    `
+    sqls.push(sql);
+    }
+    let queries = sqls.join(';');
+    return knex.raw(queries)
+  }
   saveItems(knex: Knex, datas: any) {
     return knex('wm_requisition_order_items')
       .insert(datas);
@@ -88,6 +103,35 @@ export class RequisitionModel {
     return knex('wm_requisition_orders')
       .select('*')
       .where('requisition_order_id', id)
+  }
+  setReqsProductDetail(knex: Knex, id: any) {
+    let sql = `SELECT
+    ipd.*,
+    wp.remainQty AS remainQty,
+    wp.remainQty - ipd.qty AS remainQtyB,
+    wp.expired_date 
+    
+  FROM
+  wm_requisition_orders AS ip
+    LEFT JOIN wm_requisition_confirm_item AS ipd ON ip.requisition_order_id = ipd.requisition_order_id
+    LEFT JOIN (
+  SELECT
+    wp.product_id,
+    wp.wm_product_id,
+    sum( wp.qty ) AS remainQty,
+    wp.lot_no,
+    wp.expired_date 
+  FROM
+    wm_products AS wp 
+  GROUP BY
+    wp.product_id,
+    wp.lot_no 
+  ORDER BY
+    wp.expired_date 
+    ) AS wp ON wp.wm_product_id = ipd.wm_product_id 
+  WHERE
+    ip.requisition_order_id = ${id}`
+      return knex.raw(sql);
   }
   setReqsDetail(knex: Knex, id: any) {
     let sql = `SELECT

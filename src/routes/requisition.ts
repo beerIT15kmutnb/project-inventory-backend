@@ -32,12 +32,13 @@ import { ReceiveModel } from '../models/receive';
 import { RequisitionModel } from '../models/requisition';
 // import { LotModel } from '../models/lot';
 import { SerialModel } from '../models/serial';
+import { IssueModel } from '../models/issue';
 // import { RequisitionOrderModel } from '../models/requisitionOrder';
 // import { PeriodModel } from '../models/period';
 // import { BorrowNoteModel } from '../models/borrowNote';
 
 const router = express.Router();
-
+const issueModel = new IssueModel();
 const requisitionModel = new RequisitionModel();
 // const productModel = new ProductModel();
 // const peopleModel = new PeopleModel();
@@ -97,6 +98,81 @@ router.get('/orders/setReqsDetail/:id', co(async (req, res, next) => {
     db.destroy();
   }
 }))
+router.get('/orders/setReqsProductDetail/:id', co(async (req, res, next) => {
+  let db = req.db;
+  let id = req.params.id;
+  try {
+    let rs = await requisitionModel.setReqsProductDetail(db, id);
+    res.send({ ok: true, rows: rs })
+  } catch (error) {
+    res.send({ ok: false, error: error.message })
+  } finally {
+    db.destroy();
+  }
+}))
+router.put('/orders/approveRequisitionOrder/:id', co(async (req, res, next) => {
+  let db = req.db;
+  let order: any ={};
+  let id = req.params.id
+  let products = req.body.products;
+  let people_id = req.decoded.people_id;
+
+  try {
+    
+    order.is_approve = 'Y';
+    order.user_confirm_id = people_id;
+    order.confirm_date = moment().format('YYYY-MM-DD HH:mm:ss');
+
+    await requisitionModel.updateOrder(db,id, order);
+    
+    console.log(JSON.stringify(products));
+    let item: any = [];
+    for(let p of products){
+      let items: any = [];
+      
+      p.items.forEach((v: any) => {
+        if(v.qty > 0){
+          let obj: any = {
+            requisition_order_id: id,
+            wm_product_id: v.wm_product_id,
+            confirm_qty: v.qty
+          }
+          items.push(obj)
+        } 
+        });
+        
+        await requisitionModel.saveItemsDetail(db, items);
+        
+        let _cutProduct = [];
+        items.forEach(e => {
+          if (e.confirm_qty != 0) {
+            let cutProduct: any = {};
+            cutProduct.cutQty = e.confirm_qty;
+            cutProduct.wm_product_id = e.wm_product_id;
+            _cutProduct.push(cutProduct);
+          }
+        });
+        
+        await issueModel.saveProductStock(db, _cutProduct);
+    
+        // await requisitionModel.saveItemsDetail(db, items);
+    }
+    
+    console.log('++++++')
+  //   console.log(order);
+  //   console.log(_cutProduct);
+    console.log(item);
+    
+    // 
+    res.send({ ok: true });
+  } catch (error) {
+    res.send({ ok: false, error: error.message });
+  } finally {
+    db.destroy();
+  }
+  // }
+
+}));
 router.put('/orders/saveRequisitionOrder', co(async (req, res, next) => {
   let db = req.db;
   let order: any = req.body.order;
