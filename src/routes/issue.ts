@@ -45,7 +45,7 @@ router.put('/saveIssue', co(async (req, res, next) => {
       _issueCode = 'iss-'
       var pad_char = '0';
       var pad = new Array(1 + 8).join(pad_char);
-      _issueCode += (pad + totalReceive[0].total).slice(-pad.length);
+      _issueCode += (pad + (+totalReceive[0].total + 1)).slice(-pad.length);
     }
     _issueTmpCode = _issueCode;
     if (summary.issueCode) {
@@ -310,17 +310,17 @@ router.post('/approveIssue', co(async (req, res, next) => {
       let rs = await issueModel.getIssueApprove(db, v, warehouseId);
       let data = [];
       let _cutProduct = [];
-console.log(rs.out_qty+"----------------------");
+      console.log(rs.out_qty + "----------------------");
 
       rs[0].forEach(e => {
         if (e.out_qty != 0) {
           let cutProduct: any = {};
-          cutProduct.cutQty = e.out_qty > e.balance_qty ? e.balance_qty : e.out_qty ;
+          cutProduct.cutQty = e.out_qty > e.balance_qty ? e.balance_qty : e.out_qty;
           cutProduct.wm_product_id = e.wm_product_id;
           _cutProduct.push(cutProduct);
         }
       });
-      console.log(_cutProduct+"++++++++++++++++++++");
+      console.log(_cutProduct + "++++++++++++++++++++");
 
       await issueModel.updateSummaryApprove(db, v, summary);
       // update wm_product
@@ -443,8 +443,8 @@ router.get('/listDetail', co(async (req, res, next) => {
   let id = req.query.id
 
   try {
-    let rs = await issueModel.setIssueDetail(db,id);
-    res.send({ ok: true, rows: rs,});
+    let rs = await issueModel.setIssueDetail(db, id);
+    res.send({ ok: true, rows: rs, });
   } catch (error) {
     res.send({ ok: false, error: error.message });
   } finally {

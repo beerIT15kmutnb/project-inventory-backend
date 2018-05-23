@@ -36,7 +36,7 @@ router.post('/', co((req, res, next) => __awaiter(this, void 0, void 0, function
                 _receiveCode = 'IN-';
                 var pad_char = '0';
                 var pad = new Array(1 + 8).join(pad_char);
-                _receiveCode += (pad + totalReceive[0].total).slice(-pad.length);
+                _receiveCode += (pad + (+totalReceive[0].total + 1)).slice(-pad.length);
             }
             _receiveTmpCode = _receiveCode;
             if (summary.receiveCode) {

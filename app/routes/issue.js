@@ -45,7 +45,7 @@ router.put('/saveIssue', co((req, res, next) => __awaiter(this, void 0, void 0, 
             _issueCode = 'iss-';
             var pad_char = '0';
             var pad = new Array(1 + 8).join(pad_char);
-            _issueCode += (pad + totalReceive[0].total).slice(-pad.length);
+            _issueCode += (pad + (+totalReceive[0].total + 1)).slice(-pad.length);
         }
         _issueTmpCode = _issueCode;
         if (summary.issueCode) {

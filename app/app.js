@@ -15,6 +15,7 @@ const products_1 = require("./routes/products");
 const login_1 = require("./routes/login");
 const receives_1 = require("./routes/receives");
 const issue_1 = require("./routes/issue");
+const requisition_1 = require("./routes/requisition");
 const app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
@@ -76,6 +77,7 @@ app.use((req, res, next) => {
 });
 app.use('/login', login_1.default);
 app.use('/products', checkAuth, products_1.default);
+app.use('/requisition', checkAuth, requisition_1.default);
 app.use('/receives', checkAuth, receives_1.default);
 app.use('/issues', checkAuth, issue_1.default);
 app.use('/', checkAuth, index_1.default);

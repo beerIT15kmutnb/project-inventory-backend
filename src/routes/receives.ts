@@ -40,143 +40,7 @@ const productModel = new ProductModel();
 // const lotModel = new LotModel();
 // const thaiBath = new ThaiBath();
 const serialModel = new SerialModel();
-// const stockcard = new StockCard();
-// const periodModel = new PeriodModel();
 
-// router.get('/all-products', (req, res, next) => {
-//   let db = req.db;
-
-//   receiveModel.getAllProducts(db)
-//     .then((results: any) => {
-//       res.send({ ok: true, rows: results });
-//     })
-//     .catch(error => {
-//       res.send({ ok: false, error: error.message })
-//     })
-//     .finally(() => {
-//       db.destroy();
-//     });
-// });
-
-// router.get('/product-receives', (req, res, next) => {
-//   let db = req.db;
-
-//   receiveModel.getProductReceive(db)
-//     .then((results: any) => {
-//       res.send({ ok: true, rows: results });
-//     })
-//     .catch(error => {
-//       res.send({ ok: false, error: error.message })
-//     })
-//     .finally(() => {
-//       db.destroy();
-//     });
-// });
-
-// router.post('/get-lots', (req, res, next) => {
-//   let db = req.db;
-//   let productId = req.body.productId;
-
-//   lotModel.getLots(db, productId)
-//     .then((results: any) => {
-//       res.send({ ok: true, rows: results });
-//     })
-//     .catch(error => {
-//       res.send({ ok: false, error: error.message })
-//     })
-//     .finally(() => {
-//       db.destroy();
-//     });
-// });
-
-// router.get('/types', (req, res, next) => {
-//   let db = req.db;
-
-//   receiveModel.getTypes(db)
-//     .then((results: any) => {
-//       res.send({ ok: true, rows: results });
-//     })
-//     .catch(error => {
-//       res.send({ ok: false, error: error.message })
-//     })
-//     .finally(() => {
-//       db.destroy();
-//     });
-// });
-
-// router.get('/status', (req, res, next) => {
-//   let db = req.db;
-
-//   receiveModel.getStatus(db)
-//     .then((results: any) => {
-//       res.send({ ok: true, rows: results });
-//     })
-//     .catch(error => {
-//       res.send({ ok: false, error: error.message })
-//     })
-//     .finally(() => {
-//       db.destroy();
-//     });
-// });
-
-// router.post('/search', (req, res, next) => {
-//   let db = req.db;
-//   let query = req.body.query || 'xx';
-//   console.log(query);
-//   productModel.search(db, query)
-//     .then((results: any) => {
-//       res.send({ ok: true, rows: results[0] });
-//     })
-//     .catch(error => {
-//       res.send({ ok: false, error: error.message })
-//     })
-//     .finally(() => {
-//       db.destroy();
-//     });
-// });
-
-// router.get('/locations/:warehouseId', (req, res, next) => {
-//   let db = req.db;
-//   const warehouseId = req.params.warehouseId;
-
-//   locationModel.getLocationWarehouse(db, warehouseId)
-//     .then((results: any) => {
-//       res.send({ ok: true, rows: results });
-//     })
-//     .catch(error => {
-//       res.send({ ok: false, error: error.message })
-//     })
-//     .finally(() => {
-//       db.destroy();
-//     });
-// });
-
-// router.get('/warehouse', (req, res, next) => {
-//   let db = req.db;
-
-//   warehouseModel.list(db)
-//     .then((results: any) => {
-//       res.send({ ok: true, rows: results });
-//     })
-//     .catch(error => {
-//       res.send({ ok: false, error: error.message })
-//     })
-//     .finally(() => {
-//       db.destroy();
-//     });
-// });
-
-// router.get('/warehouse-main', co(async (req, res, next) => {
-//   let db = req.db;
-//   try {
-//     let results = await warehouseModel.getMainWarehouseList(db);
-//     res.send({ ok: true, rows: results });
-//   } catch (error) {
-//     res.send({ ok: false, errro: error.message });
-//   } finally {
-//     db.destroy();
-//   }
-// }));
 
 router.post('/', co(async (req, res, next) => {
 
@@ -204,7 +68,7 @@ router.post('/', co(async (req, res, next) => {
         _receiveCode = 'IN-'
         var pad_char = '0';
         var pad = new Array(1 + 8).join(pad_char);
-        _receiveCode += (pad + totalReceive[0].total).slice(-pad.length);
+        _receiveCode += (pad + (+totalReceive[0].total + 1)).slice(-pad.length);
       }
 
       _receiveTmpCode = _receiveCode;
