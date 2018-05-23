@@ -35,7 +35,36 @@ router.get('/orders/waiting', co((req, res, next) => __awaiter(this, void 0, voi
         db.destroy();
     }
 })));
-router.post('/orders/saveRequisitionOrder', co((req, res, next) => __awaiter(this, void 0, void 0, function* () {
+router.get('/orders/setReqs/:id', co((req, res, next) => __awaiter(this, void 0, void 0, function* () {
+    let db = req.db;
+    let id = req.params.id;
+    let warehouseId = req.decoded.warehouseId;
+    try {
+        let rs = yield requisitionModel.setReqs(db, id);
+        res.send({ ok: true, rows: rs[0] });
+    }
+    catch (error) {
+        res.send({ ok: false, error: error.message });
+    }
+    finally {
+        db.destroy();
+    }
+})));
+router.get('/orders/setReqsDetail/:id', co((req, res, next) => __awaiter(this, void 0, void 0, function* () {
+    let db = req.db;
+    let id = req.params.id;
+    try {
+        let rs = yield requisitionModel.setReqsDetail(db, id);
+        res.send({ ok: true, rows: rs });
+    }
+    catch (error) {
+        res.send({ ok: false, error: error.message });
+    }
+    finally {
+        db.destroy();
+    }
+})));
+router.put('/orders/saveRequisitionOrder', co((req, res, next) => __awaiter(this, void 0, void 0, function* () {
     let db = req.db;
     let order = req.body.order;
     let products = req.body.products;
@@ -70,11 +99,45 @@ router.post('/orders/saveRequisitionOrder', co((req, res, next) => __awaiter(thi
             let obj = {
                 requisition_order_id: requisitionId,
                 product_id: v.product_id,
-                requisition_qty: v.reqs_qty
+                requisition_qty: v.requisition_qty
             };
             items.push(obj);
         });
         console.log(order, items);
+        yield requisitionModel.saveItems(db, items);
+        res.send({ ok: true });
+    }
+    catch (error) {
+        res.send({ ok: false, error: error.message });
+    }
+    finally {
+        db.destroy();
+    }
+})));
+router.put('/orders/updateRequisitionOrder/:requisitionId', co((req, res, next) => __awaiter(this, void 0, void 0, function* () {
+    let db = req.db;
+    let people_id = req.decoded.people_id;
+    let requisitionId = req.params.requisitionId;
+    let order = req.body.order;
+    let products = req.body.products;
+    let year = moment(order.requisition_date, 'YYYY-MM-DD').get('year');
+    let month = moment(order.requisition_date, 'YYYY-MM-DD').get('month') + 1;
+    try {
+        let _order = {};
+        _order.people_id = people_id;
+        _order.requisition_date = order.requisition_date;
+        let rsOrder = yield requisitionModel.updateOrder(db, requisitionId, _order);
+        let items = [];
+        products.forEach((v) => {
+            let obj = {
+                requisition_order_id: requisitionId,
+                product_id: v.product_id,
+                requisition_qty: v.requisition_qty,
+            };
+            items.push(obj);
+        });
+        console.log(items);
+        yield requisitionModel.removeItems(db, requisitionId);
         yield requisitionModel.saveItems(db, items);
         res.send({ ok: true });
     }

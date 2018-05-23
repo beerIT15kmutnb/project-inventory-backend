@@ -61,17 +61,63 @@ export class RequisitionModel {
       return db.raw(sql, [dstWarehouseId]);
     }
   }
-  getSerial(knex:Knex){
+  getSerial(knex: Knex) {
     return knex('wm_requisition_orders')
-    .count('* as total')
+      .count('* as total')
   }
   saveOrder(knex: Knex, datas: any) {
     return knex('wm_requisition_orders')
       .insert(datas);
   }
+  updateOrder(knex: Knex, id: any, datas: any) {
+    return knex('wm_requisition_orders')
+    .where('requisition_order_id', id)
+      .update(datas);
+      // .insert(datas);
+  }
+  removeItems(knex: Knex, id: any) {
+    return knex('wm_requisition_order_items')
+    .where('requisition_order_id', id)
+    .del();
+  }
   saveItems(knex: Knex, datas: any) {
     return knex('wm_requisition_order_items')
       .insert(datas);
+  }
+  setReqs(knex: Knex, id: any) {
+    return knex('wm_requisition_orders')
+      .select('*')
+      .where('requisition_order_id', id)
+  }
+  setReqsDetail(knex: Knex, id: any) {
+    let sql = `SELECT
+    ip.*,
+    mp.product_name,
+    IFNULL( q.remainQty, 0 ) AS remainQty,
+    q.small_qty,
+    q.sm,
+    q.lm 
+  FROM
+  wm_requisition_order_items AS ip
+    LEFT JOIN mm_products AS mp ON mp.product_id = ip.product_id
+    LEFT JOIN (
+  SELECT
+    sum( wp.qty ) AS remainQty,
+    mp.small_qty,
+    ug1.unit_name AS sm,
+    ug2.unit_name AS lm,
+    wp.product_id 
+  FROM
+    mm_products AS mp
+    LEFT JOIN wm_products AS wp ON wp.product_id = mp.product_id
+    LEFT JOIN mm_units AS ug1 ON ug1.unit_id = mp.small_unit_id
+    LEFT JOIN mm_units AS ug2 ON ug2.unit_id = mp.large_unit_id 
+  GROUP BY
+    mp.product_id 
+    ) AS q ON q.product_id = ip.product_id 
+  WHERE
+    ip.requisition_order_id = ${id} `
+    return knex.raw(sql)
   }
   //////
   list(knex: Knex) {
@@ -88,7 +134,7 @@ export class RequisitionModel {
     // return knex.raw(sql);
   }
 
-  
+
 
   getCheckId(knex: Knex, requisitionId: string) {
     // return knex('wm_requisition_check as rc')
@@ -102,7 +148,7 @@ export class RequisitionModel {
     //   .del();
   }
 
-  removeCheckDetail(knex: Knex, checkId: string){
+  removeCheckDetail(knex: Knex, checkId: string) {
     // return knex('wm_requisition_check_detail')
     // .where('check_id',checkId)
     // .del();
@@ -153,32 +199,32 @@ export class RequisitionModel {
   }
 
   search(knex: Knex, query, warehouseid) {
-//     let _query = `%${query}%`;
-//     let sql = `
-//     select p.product_id,p.product_name,
-// sum(wp.qty) as amtqty
-//     from mm_products as p
-// 		left join wm_products as wp on wp.product_id = p.product_id
-//     where p.product_id like ? or p.product_name like ?
-// 		and wp.warehouse_id = ?
-// 		group by p.product_id
-//     order by p.product_name
-//     limit 50
-//     `;
-//     return knex.raw(sql, [_query, _query, warehouseid]);
+    //     let _query = `%${query}%`;
+    //     let sql = `
+    //     select p.product_id,p.product_name,
+    // sum(wp.qty) as amtqty
+    //     from mm_products as p
+    // 		left join wm_products as wp on wp.product_id = p.product_id
+    //     where p.product_id like ? or p.product_name like ?
+    // 		and wp.warehouse_id = ?
+    // 		group by p.product_id
+    //     order by p.product_name
+    //     limit 50
+    //     `;
+    //     return knex.raw(sql, [_query, _query, warehouseid]);
   }
 
   //ค้นหารายการสินค้าทั้งหมดที่มีในคลัง
   searchall(knex: Knex, warehouseid) {
-//     let sql = `
-// select wwp.warehouse_id, wwp.product_id, mp.product_name, sum(wp.qty) as qty,wwp.min_qty, wwp.max_qty, mp.is_raw_material
-// from wm_warehouse_products as wwp
-// inner join mm_products mp on wwp.product_id = mp.product_id
-// left join wm_products wp on wwp.warehouse_id = wp.warehouse_id and wwp.product_id = wp.product_id
-// where wwp.warehouse_id = ?
-// group by wwp.warehouse_id,wwp.product_id
-//     `;
-//     return knex.raw(sql, [warehouseid]);
+    //     let sql = `
+    // select wwp.warehouse_id, wwp.product_id, mp.product_name, sum(wp.qty) as qty,wwp.min_qty, wwp.max_qty, mp.is_raw_material
+    // from wm_warehouse_products as wwp
+    // inner join mm_products mp on wwp.product_id = mp.product_id
+    // left join wm_products wp on wwp.warehouse_id = wp.warehouse_id and wwp.product_id = wp.product_id
+    // where wwp.warehouse_id = ?
+    // group by wwp.warehouse_id,wwp.product_id
+    //     `;
+    //     return knex.raw(sql, [warehouseid]);
   }
 
   getRequisitionInfo(knex: Knex, requisitionId: any) {
@@ -194,19 +240,19 @@ export class RequisitionModel {
   getReceiveProducts(knex: Knex, requisitionId: any) {
     // let sql = `
     // select wr.requisition_id,mp.generic_id,mg.generic_name,wrd.product_id,mp.product_name,wrd.requisition_qty,(wrd.requisition_qty / mug.qty) as requisition_edit_qty,
-		// (select sum(wp.qty) from wm_products as wp where wp.product_id = mp.product_id and wp.warehouse_id = wr.wm_withdraw) as remain_qty,
-		// 		(select sum(wp.qty) from wm_products as wp where wp.product_id = mp.product_id and wp.warehouse_id = wr.wm_requisition) as onhand_qty,
-		// '' as small_unit, wrd.cost,
+    // (select sum(wp.qty) from wm_products as wp where wp.product_id = mp.product_id and wp.warehouse_id = wr.wm_withdraw) as remain_qty,
+    // 		(select sum(wp.qty) from wm_products as wp where wp.product_id = mp.product_id and wp.warehouse_id = wr.wm_requisition) as onhand_qty,
+    // '' as small_unit, wrd.cost,
     // wrd.lot_no,wpl.expired_date,wrd.unit_generic_id,mug.from_unit_id,
     // large_unit.unit_name as large_unit_name,mug.to_unit_id,small_unit.unit_name as small_unit_name,
     // mug.qty as unit_qty,mmp.min_qty,mmp.max_qty
     // from wm_requisition as wr
     // inner join wm_requisition_detail as wrd on wr.requisition_id = wrd.requisition_id
     // inner join mm_products as mp on wrd.product_id = mp.product_id
-		// left join mm_generics mg on mp.generic_id = mg.generic_id
-		// left join wm_products wpl on wrd.product_id = wpl.product_id and wrd.warehouse_id = wpl.warehouse_id  and wrd.lot_no = wpl.lot_no
+    // left join mm_generics mg on mp.generic_id = mg.generic_id
+    // left join wm_products wpl on wrd.product_id = wpl.product_id and wrd.warehouse_id = wpl.warehouse_id  and wrd.lot_no = wpl.lot_no
     // inner join mm_unit_generics mug on wrd.unit_generic_id = mug.unit_generic_id
-		// left join mm_product_planning mmp on mmp.warehouse_id = wr.wm_requisition and mmp.source_warehouse_id = wr.wm_withdraw and wrd.product_id = mmp.product_id
+    // left join mm_product_planning mmp on mmp.warehouse_id = wr.wm_requisition and mmp.source_warehouse_id = wr.wm_withdraw and wrd.product_id = mmp.product_id
     // left join mm_units as large_unit on mug.from_unit_id = large_unit.unit_id
     // left join mm_units as small_unit on mug.to_unit_id = small_unit.unit_id
     // where wr.requisition_id = ? 
@@ -283,39 +329,39 @@ export class RequisitionModel {
     //   .innerJoin('mm_labelers as l', 'l.labeler_id', 'pl.labeler_id ')
     //   .where('pl.type_id', "M");
   }
- 
+
   //ใบหยิบสินค้า
   getReceiveProductCheckList(knex: Knex) {
-//     let sql = `
-//     SELECT
-//     wcd.product_id,
-//     wcd.warehouse_id as withdraw_warehouse_id,
-//     r.receive_id, 
-//     wcd.location_id,
-//     r.receive_code,
-//     r.delivery_code,
-//     wp.product_name,
-//     wcd.expired_date,
-//     '' as lot_id,
-//     wcd.lot_no,	
-//     wcd.receive_qty as qty,
-//     wcd.cost,
-//     wcd.unit_generic_id,
-//     mup.qty as unit_qty,
-//     mul.unit_name as large_unit_name, mus.unit_name as small_unit_name
-//   FROM
-//     wm_receive_detail AS wcd
-//   INNER JOIN wm_receives AS r ON r.receive_id = wcd.receive_id
-//   INNER JOIN mm_products AS wp ON wp.product_id = wcd.product_id
-//   LEFT JOIN wm_receive_approve AS ra ON r.receive_id = ra.receive_id
-//   inner join mm_unit_generics as mup on wcd.unit_generic_id = mup.unit_generic_id
-//   inner join mm_units as mul on mup.from_unit_id = mul.unit_id
-//   inner join mm_units as mus on mup.to_unit_id = mus.unit_id
-// 	where r.is_success != 'Y' and r.is_completed != 'Y'
-//   ORDER BY
-//     wcd.receive_id ASC
-//  `;
-//     return knex.raw(sql, []);
+    //     let sql = `
+    //     SELECT
+    //     wcd.product_id,
+    //     wcd.warehouse_id as withdraw_warehouse_id,
+    //     r.receive_id, 
+    //     wcd.location_id,
+    //     r.receive_code,
+    //     r.delivery_code,
+    //     wp.product_name,
+    //     wcd.expired_date,
+    //     '' as lot_id,
+    //     wcd.lot_no,	
+    //     wcd.receive_qty as qty,
+    //     wcd.cost,
+    //     wcd.unit_generic_id,
+    //     mup.qty as unit_qty,
+    //     mul.unit_name as large_unit_name, mus.unit_name as small_unit_name
+    //   FROM
+    //     wm_receive_detail AS wcd
+    //   INNER JOIN wm_receives AS r ON r.receive_id = wcd.receive_id
+    //   INNER JOIN mm_products AS wp ON wp.product_id = wcd.product_id
+    //   LEFT JOIN wm_receive_approve AS ra ON r.receive_id = ra.receive_id
+    //   inner join mm_unit_generics as mup on wcd.unit_generic_id = mup.unit_generic_id
+    //   inner join mm_units as mul on mup.from_unit_id = mul.unit_id
+    //   inner join mm_units as mus on mup.to_unit_id = mus.unit_id
+    // 	where r.is_success != 'Y' and r.is_completed != 'Y'
+    //   ORDER BY
+    //     wcd.receive_id ASC
+    //  `;
+    //     return knex.raw(sql, []);
   }
 
   getAllReserveRequisitionQty(knex: Knex, productId: any, srcWarehouseId: any) {
@@ -334,7 +380,7 @@ export class RequisitionModel {
     // `;
     // return knex.raw(sql, [productId, srcWarehouseId]);
   }
-  
+
   getGenericsFromRequisition(db: Knex, requisitionId: any) {
     // let sql = `
     // select distinct generic_id from wm_requisition_order_items
@@ -342,7 +388,7 @@ export class RequisitionModel {
     // `;
     // return db.raw(sql, [requisitionId]);
   }
-  
+
   getProductInWarehousesByGenerics(db: Knex, generics: any[], warehouseId: any) {
     // return db('wm_products as wp')
     //   .select('wp.*', 'mp.generic_id', 'ug.unit_generic_id', 'ug.qty as conversion_qty',

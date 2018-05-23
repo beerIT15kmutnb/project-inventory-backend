@@ -69,9 +69,54 @@ class RequisitionModel {
         return knex('wm_requisition_orders')
             .insert(datas);
     }
+    updateOrder(knex, id, datas) {
+        return knex('wm_requisition_orders')
+            .where('requisition_order_id', id)
+            .update(datas);
+    }
+    removeItems(knex, id) {
+        return knex('wm_requisition_order_items')
+            .where('requisition_order_id', id)
+            .del();
+    }
     saveItems(knex, datas) {
         return knex('wm_requisition_order_items')
             .insert(datas);
+    }
+    setReqs(knex, id) {
+        return knex('wm_requisition_orders')
+            .select('*')
+            .where('requisition_order_id', id);
+    }
+    setReqsDetail(knex, id) {
+        let sql = `SELECT
+    ip.*,
+    mp.product_name,
+    IFNULL( q.remainQty, 0 ) AS remainQty,
+    q.small_qty,
+    q.sm,
+    q.lm 
+  FROM
+  wm_requisition_order_items AS ip
+    LEFT JOIN mm_products AS mp ON mp.product_id = ip.product_id
+    LEFT JOIN (
+  SELECT
+    sum( wp.qty ) AS remainQty,
+    mp.small_qty,
+    ug1.unit_name AS sm,
+    ug2.unit_name AS lm,
+    wp.product_id 
+  FROM
+    mm_products AS mp
+    LEFT JOIN wm_products AS wp ON wp.product_id = mp.product_id
+    LEFT JOIN mm_units AS ug1 ON ug1.unit_id = mp.small_unit_id
+    LEFT JOIN mm_units AS ug2 ON ug2.unit_id = mp.large_unit_id 
+  GROUP BY
+    mp.product_id 
+    ) AS q ON q.product_id = ip.product_id 
+  WHERE
+    ip.requisition_order_id = ${id} `;
+        return knex.raw(sql);
     }
     list(knex) {
     }

@@ -70,7 +70,34 @@ router.get('/orders/waiting', co(async (req, res, next) => {
   }
 
 }));
-router.post('/orders/saveRequisitionOrder', co(async (req, res, next) => {
+router.get('/orders/setReqs/:id', co(async (req, res, next) => {
+
+  let db = req.db;
+  let id = req.params.id ;
+  let warehouseId = req.decoded.warehouseId;
+  try {
+    let rs: any = await requisitionModel.setReqs(db, id);
+    res.send({ ok: true, rows: rs[0]});
+  } catch (error) {
+    res.send({ ok: false, error: error.message });
+  } finally {
+    db.destroy();
+  }
+
+}));
+router.get('/orders/setReqsDetail/:id', co(async (req, res, next) => {
+  let db = req.db;
+  let id = req.params.id;
+  try {
+    let rs = await requisitionModel.setReqsDetail(db, id);
+    res.send({ ok: true, rows: rs })
+  } catch (error) {
+    res.send({ ok: false, error: error.message })
+  } finally {
+    db.destroy();
+  }
+}))
+router.put('/orders/saveRequisitionOrder', co(async (req, res, next) => {
   let db = req.db;
   let order: any = req.body.order;
   let products = req.body.products;
@@ -115,7 +142,7 @@ router.post('/orders/saveRequisitionOrder', co(async (req, res, next) => {
       let obj: any = {
         requisition_order_id: requisitionId,
         product_id: v.product_id,
-        requisition_qty: v.reqs_qty
+        requisition_qty: v.requisition_qty
       }
       items.push(obj);
     });
@@ -132,54 +159,47 @@ router.post('/orders/saveRequisitionOrder', co(async (req, res, next) => {
 
 }));
 
-// router.put('/orders/:requisitionId', async (req, res, next) => {
-//   let db = req.db;
-//   let people_id = req.decoded.people_id;
-//   let requisitionId: any = req.params.requisitionId;
-//   let order: any = req.body.order;
-//   let products = req.body.products;
+// 
+router.put('/orders/updateRequisitionOrder/:requisitionId', co(async (req, res, next) => {
+  let db = req.db;
+  let people_id = req.decoded.people_id;
+  let requisitionId: any = req.params.requisitionId;
+  let order: any = req.body.order;
+  let products = req.body.products;
 
-//   let year = moment(order.requisition_date, 'YYYY-MM-DD').get('year');
-//   let month = moment(order.requisition_date, 'YYYY-MM-DD').get('month') + 1;
+  let year = moment(order.requisition_date, 'YYYY-MM-DD').get('year');
+  let month = moment(order.requisition_date, 'YYYY-MM-DD').get('month') + 1;
+    try {
+      let _order: any = {};
+      _order.people_id = people_id;
+      // _order.updated_ = moment().format('YYYY-MM-DD HH:mm:ss');
+      _order.requisition_date = order.requisition_date;
 
-//   let isClose = await periodModel.isPeriodClose(db, year, month);
+      let rsOrder: any = await requisitionModel.updateOrder(db, requisitionId, _order);
 
-//   if (isClose) {
-//     res.send({ ok: false, error: 'รอบบัญชีถูกปิดแล้ว' })
-//   } else {
+      let items: any = [];
 
-//     try {
-//       let _order: any = {};
-//       _order.people_id = people_id;
-//       _order.updated_at = moment().format('YYYY-MM-DD HH:mm:ss');
-//       _order.requisition_type_id = order.requisition_type_id;
-//       _order.requisition_date = order.requisition_date;
+      products.forEach((v: any) => {
+        let obj: any = {
+          requisition_order_id: requisitionId,
+          product_id: v.product_id,
+          requisition_qty: v.requisition_qty, // small qty
+        }
+        items.push(obj);
+      });
+      console.log(items);
+      
+      await requisitionModel.removeItems(db, requisitionId);
+      await requisitionModel.saveItems(db, items);
+      res.send({ ok: true });
+    } catch (error) {
+      res.send({ ok: false, error: error.message });
+    } finally {
+      db.destroy();
+    }
+  
 
-//       let rsOrder: any = await orderModel.updateOrder(db, requisitionId, _order);
-
-//       let items: any = [];
-
-//       products.forEach((v: any) => {
-//         let obj: any = {
-//           requisition_order_id: requisitionId,
-//           generic_id: v.generic_id,
-//           requisition_qty: v.requisition_qty, // small qty
-//           unit_generic_id: v.unit_generic_id
-//         }
-//         items.push(obj);
-//       });
-
-//       await orderModel.removeItems(db, requisitionId);
-//       await orderModel.saveItems(db, items);
-//       res.send({ ok: true });
-//     } catch (error) {
-//       res.send({ ok: false, error: error.message });
-//     } finally {
-//       db.destroy();
-//     }
-//   }
-
-// });
+}));
 
 
 
