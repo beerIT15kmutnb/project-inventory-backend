@@ -2,7 +2,42 @@ import Knex = require('knex');
 import * as moment from 'moment';
 
 export class RequisitionModel {
+  getListApproved(db: Knex, srcWarehouseId: any = null, dstWarehouseId: any = null, limit: number, offset: number, query = '', fillterCancel) {
+    let _query = `%${query}%`;
+    let sql = `
+    select ro.*,
+    (
+    select sum(wm.qty) 
+    from wm_products as wm 
+    inner join mm_products as mp on mp.product_id=wm.product_id 
+    inner join wm_requisition_order_items as roi on roi.product_id = mp.product_id
+    where wm.warehouse_id = ro.wm_withdraw 
+    and roi.requisition_order_id=ro.requisition_order_id
+    ) as total_remain ,
+    CONCAT(up.fname,' ',up.lname) as fullName 
 
+    from wm_requisition_orders as ro 
+    LEFT JOIN um_people as up on up.people_id = ro.people_id
+    where ro.is_approve='Y' `;
+    if (query) {
+      sql += ` and (ro.requisition_code like '${_query}' or 
+      w1.warehouse_name like '${_query}')`;
+    }
+    if (fillterCancel === 'nCancel') {
+      sql += ` and ro.is_cancel = 'N' `;
+    } else if (fillterCancel === 'cancel') {
+      sql += ` and ro.is_cancel = 'Y' `;
+    }
+    if (srcWarehouseId) {
+      sql += ` and ro.wm_requisition = ? order by ro.requisition_code DESC
+      limit ? offset ?`;
+      return db.raw(sql, [srcWarehouseId, limit, offset]);
+    } else {
+      sql += ` and ro.wm_withdraw = ? order by ro.requisition_code DESC
+      limit ? offset ?`;
+      return db.raw(sql, [dstWarehouseId, limit, offset]);
+    }
+  }
   getListWaiting(db: Knex, srcWarehouseId: any = null, dstWarehouseId: any = null, limit: number, offset: number, query = '', fillterCancel) {
     let _query = `%${query}%`;
     let sql = `
@@ -11,12 +46,14 @@ export class RequisitionModel {
     select sum(wm.qty) 
     from wm_products as wm 
     inner join mm_products as mp on mp.product_id=wm.product_id 
-    inner join wm_requisition_order_items as roi on roi.product_id = mp.product_id 
+    inner join wm_requisition_order_items as roi on roi.product_id = mp.product_id
     where wm.warehouse_id = ro.wm_withdraw 
     and roi.requisition_order_id=ro.requisition_order_id
-    ) as total_remain 
+    ) as total_remain ,
+    CONCAT(up.fname,' ',up.lname) as fullName 
 
     from wm_requisition_orders as ro 
+    LEFT JOIN um_people as up on up.people_id = ro.people_id
     where ro.is_approve='N' `;
     if (query) {
       sql += ` and (ro.requisition_code like '${_query}' or 

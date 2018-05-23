@@ -178,6 +178,24 @@ router.put('/orders/saveRequisitionOrder', co((req, res, next) => __awaiter(this
         db.destroy();
     }
 })));
+router.get('/orders/approved', (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+    let db = req.db;
+    let limit = +req.query.limit || 15;
+    let offset = +req.query.offset || 0;
+    let query = req.query.query;
+    let warehouseId = req.decoded.warehouseId;
+    let fillterCancel = 'all';
+    try {
+        let rs = yield requisitionModel.getListApproved(db, null, warehouseId, limit, offset, query, fillterCancel);
+        res.send({ ok: true, rows: rs[0] });
+    }
+    catch (error) {
+        res.send({ ok: false, error: error.message });
+    }
+    finally {
+        db.destroy();
+    }
+}));
 router.put('/orders/updateRequisitionOrder/:requisitionId', co((req, res, next) => __awaiter(this, void 0, void 0, function* () {
     let db = req.db;
     let people_id = req.decoded.people_id;

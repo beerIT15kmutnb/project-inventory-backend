@@ -235,6 +235,26 @@ router.put('/orders/saveRequisitionOrder', co(async (req, res, next) => {
 
 }));
 
+router.get('/orders/approved', async (req, res, next) => {
+
+  let db = req.db;
+  let limit = +req.query.limit || 15;
+  let offset = +req.query.offset || 0;
+  let query = req.query.query;
+  let warehouseId = req.decoded.warehouseId;
+  let fillterCancel = 'all';
+
+  try {
+    let rs: any = await requisitionModel.getListApproved(db, null, warehouseId, limit, offset, query,fillterCancel);
+    // let rsTotal: any = await orderModel.totalListApproved(db, null, warehouseId, query);
+    res.send({ ok: true, rows: rs[0]});
+  } catch (error) {
+    res.send({ ok: false, error: error.message });
+  } finally {
+    db.destroy();
+  }
+
+});
 // 
 router.put('/orders/updateRequisitionOrder/:requisitionId', co(async (req, res, next) => {
   let db = req.db;
@@ -254,7 +274,7 @@ router.put('/orders/updateRequisitionOrder/:requisitionId', co(async (req, res, 
       let rsOrder: any = await requisitionModel.updateOrder(db, requisitionId, _order);
 
       let items: any = [];
-
+      
       products.forEach((v: any) => {
         let obj: any = {
           requisition_order_id: requisitionId,
@@ -300,26 +320,6 @@ router.put('/orders/updateRequisitionOrder/:requisitionId', co(async (req, res, 
 
 // });
 
-// router.get('/orders/approved', async (req, res, next) => {
-
-//   let db = req.db;
-//   let limit = +req.query.limit || 15;
-//   let offset = +req.query.offset || 0;
-//   let query = req.query.query;
-//   let warehouseId = req.decoded.warehouseId;
-//   let fillterCancel = req.query.fillterCancel;
-
-//   try {
-//     let rs: any = await orderModel.getListApproved(db, null, warehouseId, limit, offset, query);
-//     let rsTotal: any = await orderModel.totalListApproved(db, null, warehouseId, query);
-//     res.send({ ok: true, rows: rs[0], total: rsTotal[0] });
-//   } catch (error) {
-//     res.send({ ok: false, error: error.message });
-//   } finally {
-//     db.destroy();
-//   }
-
-// });
 
 // router.get('/orders/detail/:requisitionId', async (req, res, next) => {
 

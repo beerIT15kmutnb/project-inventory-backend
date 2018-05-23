@@ -1,6 +1,33 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class ProductModel {
+    getTransactionList(knex, limit, offset) {
+        let sql = `
+    select * from(
+    SELECT
+        mp.product_code,
+        mp.product_name,
+        mp.min_qty,
+        mp.max_qty,
+        ifnull(sum(p.qty),0) as qty,
+        uL.unit_name
+    FROM
+        mm_products AS mp 
+        LEFT JOIN wm_products AS p ON mp.product_id = p.product_id
+        LEFT JOIN mm_units AS uL ON uL.unit_id = mp.large_unit_id
+        LEFT JOIN mm_units AS uS ON uS.unit_id = mp.small_unit_id
+    WHERE
+        mp.is_active = 1 
+    GROUP BY
+        mp.product_id 
+    ORDER BY
+        mp.product_name ASC 
+        LIMIT ${limit}
+        offset ${offset} ) as q1
+        where q1.qty < q1.min_qty
+    `;
+        return knex.raw(sql);
+    }
     getList(knex) {
         return knex('generic_types');
     }
@@ -24,18 +51,15 @@ class ProductModel {
     }
     adminGetAllProducts(knex, limit, offset) {
         let query = `SELECT
-        g.generic_code,
-        g.generic_name,
         mp.product_code,
         mp.product_name,
-        g.min_qty,
-        g.max_qty,
+        mp.min_qty,
+        mp.max_qty,
         ifnull(sum(p.qty),0) as qty,
         uL.unit_name
     FROM
         mm_products AS mp 
         LEFT JOIN wm_products AS p ON mp.product_id = p.product_id
-        LEFT JOIN mm_generics AS g ON g.generic_id = mp.generic_id
         LEFT JOIN mm_units AS uL ON uL.unit_id = mp.large_unit_id
         LEFT JOIN mm_units AS uS ON uS.unit_id = mp.small_unit_id
     WHERE

@@ -16,6 +16,21 @@ const productModel = new products_1.ProductModel();
 router.get('/', (req, res, next) => {
     res.send({ ok: true, message: 'Product API server' });
 });
+router.post('/transaction/list', wrap((req, res, next) => __awaiter(this, void 0, void 0, function* () {
+    let db = req.db;
+    let limit = +req.body.limit || 50;
+    let offset = +req.body.offset || 0;
+    try {
+        let products = yield productModel.getTransactionList(db, limit, offset);
+        res.send({ ok: true, rows: products });
+    }
+    catch (error) {
+        res.send({ ok: false, error: error.message });
+    }
+    finally {
+        db.destroy();
+    }
+})));
 router.get('/getList', wrap((req, res, next) => __awaiter(this, void 0, void 0, function* () {
     let db = req.db;
     try {

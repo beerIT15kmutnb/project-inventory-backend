@@ -14,6 +14,20 @@ router.get('/', (req, res, next) => {
     res.send({ ok: true, message: 'Product API server' });
 });
 
+router.post('/transaction/list',  wrap(async (req, res, next) => {
+  let db = req.db;
+  let limit = +req.body.limit || 50;
+  let offset = +req.body.offset || 0;
+  try {
+      let products = await productModel.getTransactionList(db,limit,offset);
+      res.send({ ok: true, rows: products})
+  } catch (error){
+      res.send({ ok: false, error: error.message });
+  } finally {
+      db.destroy();
+  }
+}));
+
 router.get('/getList',  wrap(async (req, res, next) => {
     let db = req.db;
     try {
