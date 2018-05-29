@@ -17,6 +17,7 @@ const receives_1 = require("./routes/receives");
 const issue_1 = require("./routes/issue");
 const requisition_1 = require("./routes/requisition");
 const generics_1 = require("./routes/generics");
+const people_1 = require("./routes/people");
 const app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
@@ -82,6 +83,7 @@ app.use('/requisition', checkAuth, requisition_1.default);
 app.use('/receives', checkAuth, receives_1.default);
 app.use('/issues', checkAuth, issue_1.default);
 app.use('/generics', checkAuth, generics_1.default);
+app.use('/people', checkAuth, people_1.default);
 app.use('/', checkAuth, index_1.default);
 app.use((req, res, next) => {
     var err = new Error('Not Found');

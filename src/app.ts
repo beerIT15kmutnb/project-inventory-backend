@@ -25,7 +25,7 @@ import receives from './routes/receives';
 import issue from './routes/issue';
 import requisition from './routes/requisition';
 import generic from './routes/generics';
-
+import people from './routes/people'
 const app: express.Express = express();
 
 //view engine setup
@@ -100,6 +100,7 @@ app.use('/requisition', checkAuth, requisition);
 app.use('/receives', checkAuth, receives);
 app.use('/issues', checkAuth, issue)
 app.use('/generics', checkAuth, generic )
+app.use('/people',checkAuth,people)
 app.use('/', checkAuth, index);
 
 

@@ -10,8 +10,7 @@ class RequisitionModel {
     from wm_products as wm 
     inner join mm_products as mp on mp.product_id=wm.product_id 
     inner join wm_requisition_order_items as roi on roi.product_id = mp.product_id
-    where wm.warehouse_id = ro.wm_withdraw 
-    and roi.requisition_order_id=ro.requisition_order_id
+    where roi.requisition_order_id=ro.requisition_order_id
     ) as total_remain ,
     CONCAT(up.fname,' ',up.lname) as fullName 
 
@@ -28,16 +27,9 @@ class RequisitionModel {
         else if (fillterCancel === 'cancel') {
             sql += ` and ro.is_cancel = 'Y' `;
         }
-        if (srcWarehouseId) {
-            sql += ` and ro.wm_requisition = ? order by ro.requisition_code DESC
+        sql += `  order by ro.requisition_code DESC
       limit ? offset ?`;
-            return db.raw(sql, [srcWarehouseId, limit, offset]);
-        }
-        else {
-            sql += ` and ro.wm_withdraw = ? order by ro.requisition_code DESC
-      limit ? offset ?`;
-            return db.raw(sql, [dstWarehouseId, limit, offset]);
-        }
+        return db.raw(sql, [limit, offset]);
     }
     getListWaiting(db, srcWarehouseId = null, dstWarehouseId = null, limit, offset, query = '', fillterCancel) {
         let _query = `%${query}%`;
@@ -48,8 +40,7 @@ class RequisitionModel {
     from wm_products as wm 
     inner join mm_products as mp on mp.product_id=wm.product_id 
     inner join wm_requisition_order_items as roi on roi.product_id = mp.product_id
-    where wm.warehouse_id = ro.wm_withdraw 
-    and roi.requisition_order_id=ro.requisition_order_id
+    where roi.requisition_order_id=ro.requisition_order_id
     ) as total_remain ,
     CONCAT(up.fname,' ',up.lname) as fullName 
 
@@ -67,14 +58,14 @@ class RequisitionModel {
             sql += ` and ro.is_cancel = 'Y' `;
         }
         if (srcWarehouseId) {
-            sql += ` and ro.wm_requisition = ? order by ro.requisition_code DESC
+            sql += `  order by ro.requisition_code DESC
       limit ? offset ?`;
-            return db.raw(sql, [srcWarehouseId, limit, offset]);
+            return db.raw(sql, [limit, offset]);
         }
         else {
-            sql += ` and ro.wm_withdraw = ? order by ro.requisition_code DESC
+            sql += `  order by ro.requisition_code DESC
       limit ? offset ?`;
-            return db.raw(sql, [dstWarehouseId, limit, offset]);
+            return db.raw(sql, [limit, offset]);
         }
     }
     totalListWaiting(db, srcWarehouseId = null, dstWarehouseId = null, query = '', fillterCancel) {
@@ -92,14 +83,7 @@ class RequisitionModel {
         else if (fillterCancel === 'cancel') {
             sql += ` and ro.is_cancel = 'Y' `;
         }
-        if (srcWarehouseId) {
-            sql += ` and ro.wm_requisition = ?`;
-            return db.raw(sql, [srcWarehouseId]);
-        }
-        else {
-            sql += ` and ro.wm_withdraw = ?`;
-            return db.raw(sql, [dstWarehouseId]);
-        }
+        return db.raw(sql);
     }
     getSerial(knex) {
         return knex('wm_requisition_orders')

@@ -11,8 +11,7 @@ export class RequisitionModel {
     from wm_products as wm 
     inner join mm_products as mp on mp.product_id=wm.product_id 
     inner join wm_requisition_order_items as roi on roi.product_id = mp.product_id
-    where wm.warehouse_id = ro.wm_withdraw 
-    and roi.requisition_order_id=ro.requisition_order_id
+    where roi.requisition_order_id=ro.requisition_order_id
     ) as total_remain ,
     CONCAT(up.fname,' ',up.lname) as fullName 
 
@@ -28,15 +27,11 @@ export class RequisitionModel {
     } else if (fillterCancel === 'cancel') {
       sql += ` and ro.is_cancel = 'Y' `;
     }
-    if (srcWarehouseId) {
-      sql += ` and ro.wm_requisition = ? order by ro.requisition_code DESC
+
+    sql += `  order by ro.requisition_code DESC
       limit ? offset ?`;
-      return db.raw(sql, [srcWarehouseId, limit, offset]);
-    } else {
-      sql += ` and ro.wm_withdraw = ? order by ro.requisition_code DESC
-      limit ? offset ?`;
-      return db.raw(sql, [dstWarehouseId, limit, offset]);
-    }
+    return db.raw(sql, [limit, offset]);
+
   }
   getListWaiting(db: Knex, srcWarehouseId: any = null, dstWarehouseId: any = null, limit: number, offset: number, query = '', fillterCancel) {
     let _query = `%${query}%`;
@@ -47,8 +42,7 @@ export class RequisitionModel {
     from wm_products as wm 
     inner join mm_products as mp on mp.product_id=wm.product_id 
     inner join wm_requisition_order_items as roi on roi.product_id = mp.product_id
-    where wm.warehouse_id = ro.wm_withdraw 
-    and roi.requisition_order_id=ro.requisition_order_id
+    where roi.requisition_order_id=ro.requisition_order_id
     ) as total_remain ,
     CONCAT(up.fname,' ',up.lname) as fullName 
 
@@ -65,13 +59,13 @@ export class RequisitionModel {
       sql += ` and ro.is_cancel = 'Y' `;
     }
     if (srcWarehouseId) {
-      sql += ` and ro.wm_requisition = ? order by ro.requisition_code DESC
+      sql += `  order by ro.requisition_code DESC
       limit ? offset ?`;
-      return db.raw(sql, [srcWarehouseId, limit, offset]);
+      return db.raw(sql, [limit, offset]);
     } else {
-      sql += ` and ro.wm_withdraw = ? order by ro.requisition_code DESC
+      sql += `  order by ro.requisition_code DESC
       limit ? offset ?`;
-      return db.raw(sql, [dstWarehouseId, limit, offset]);
+      return db.raw(sql, [limit, offset]);
     }
   }
 
@@ -90,13 +84,14 @@ export class RequisitionModel {
     } else if (fillterCancel === 'cancel') {
       sql += ` and ro.is_cancel = 'Y' `;
     }
-    if (srcWarehouseId) {
-      sql += ` and ro.wm_requisition = ?`;
-      return db.raw(sql, [srcWarehouseId]);
-    } else {
-      sql += ` and ro.wm_withdraw = ?`;
-      return db.raw(sql, [dstWarehouseId]);
-    }
+    // if (srcWarehouseId) {
+    //   sql += ` and ro.wm_requisition = ?`;
+    //   return db.raw(sql, [srcWarehouseId]);
+    // } else {
+    //   sql += ` and ro.wm_withdraw = ?`;
+    //   return db.raw(sql, [dstWarehouseId]);
+    // }
+    return db.raw(sql);
   }
   getSerial(knex: Knex) {
     return knex('wm_requisition_orders')
@@ -108,18 +103,18 @@ export class RequisitionModel {
   }
   updateOrder(knex: Knex, id: any, datas: any) {
     return knex('wm_requisition_orders')
-    .where('requisition_order_id', id)
+      .where('requisition_order_id', id)
       .update(datas);
-      // .insert(datas);
+    // .insert(datas);
   }
   removeItems(knex: Knex, id: any) {
     return knex('wm_requisition_order_items')
-    .where('requisition_order_id', id)
-    .del();
+      .where('requisition_order_id', id)
+      .del();
   }
   saveItemsDetail(knex: Knex, data: any) {
-    let sqls = [];    
-    for(let datas of data){
+    let sqls = [];
+    for (let datas of data) {
       let sql = `
     INSERT INTO wm_requisition_confirm_item
           (requisition_order_id, wm_product_id,confirm_qty)
@@ -127,7 +122,7 @@ export class RequisitionModel {
           ON DUPLICATE KEY UPDATE
           confirm_qty = ${datas.confirm_qty}
     `
-    sqls.push(sql);
+      sqls.push(sql);
     }
     let queries = sqls.join(';');
     return knex.raw(queries)
@@ -168,7 +163,7 @@ export class RequisitionModel {
     ) AS wp ON wp.wm_product_id = ipd.wm_product_id 
   WHERE
     ip.requisition_order_id = ${id}`
-      return knex.raw(sql);
+    return knex.raw(sql);
   }
   setReqsDetail(knex: Knex, id: any) {
     let sql = `SELECT
