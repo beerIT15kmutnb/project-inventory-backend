@@ -176,6 +176,7 @@ class RequisitionModel {
         let sql = `SELECT
     ip.*,
     mp.product_name,
+    q.generic_name,
     IFNULL( q.remainQty, 0 ) AS remainQty,
     q.small_qty,
     q.sm,
@@ -187,13 +188,15 @@ class RequisitionModel {
   SELECT
     sum( wp.qty ) AS remainQty,
     mp.small_qty,
+    mg.generic_name,
     ug1.unit_name AS sm,
     ug2.unit_name AS lm,
     wp.product_id 
   FROM
     mm_products AS mp
     LEFT JOIN wm_products AS wp ON wp.product_id = mp.product_id
-    LEFT JOIN mm_units AS ug1 ON ug1.unit_id = mp.small_unit_id
+    left join mm_generics as mg on mg.generic_id = mp.generic_id 
+    LEFT JOIN mm_units AS ug1 ON ug1.unit_id = mg.small_unit_id
     LEFT JOIN mm_units AS ug2 ON ug2.unit_id = mp.large_unit_id 
   GROUP BY
     mp.product_id 

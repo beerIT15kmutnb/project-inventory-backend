@@ -514,7 +514,7 @@ FROM
 	wm_receive_detail AS rd
 	INNER JOIN mm_products AS p ON p.product_id = rd.product_id
 	LEFT JOIN mm_generics AS g ON g.generic_id = p.generic_id
-	LEFT JOIN mm_units AS u1 ON p.small_unit_id = u1.unit_id  
+	LEFT JOIN mm_units AS u1 ON g.small_unit_id = u1.unit_id  
 	LEFT JOIN mm_units AS u2 ON p.large_unit_id = u2.unit_id  
 	INNER JOIN wm_receives AS r ON r.receive_id = rd.receive_id 
 WHERE

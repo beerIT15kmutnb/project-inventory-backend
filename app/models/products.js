@@ -1,35 +1,147 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class ProductModel {
+    adminSearchAllProducts(knex, query) {
+        let q_ = `${query}%`;
+        let _q_ = `%${query}%`;
+        let sql = `
+        select DISTINCT * from (
+       ( SELECT
+	mp.product_name,
+	mp.product_id,
+	mg.generic_code AS generic_workign_code,
+	mg.generic_name,
+    mp.generic_id,
+    mp.small_qty,
+	u1.unit_name as small_unit_name,
+	u2.unit_name as large_unit_name
+FROM
+	mm_products AS mp
+	LEFT JOIN mm_generics AS mg ON mg.generic_id = mp.generic_id
+	left join mm_units as u1 on mg.small_unit_id = u1.unit_id
+	left join mm_units as u2 on mp.large_unit_id = u2.unit_id
+WHERE
+	( mp.product_name LIKE '${query}' ) 
+	AND mp.is_active = 'Y' 
+	LIMIT 10 )
+        UNION ALL
+        SELECT * from (
+        SELECT
+	mp.product_name,
+	mp.product_id,
+	mg.generic_code AS generic_workign_code,
+	mg.generic_name,
+    mp.generic_id,
+    mp.small_qty,
+	u1.unit_name as small_unit_name,
+	u2.unit_name as large_unit_name
+FROM
+	mm_products AS mp
+	LEFT JOIN mm_generics AS mg ON mg.generic_id = mp.generic_id
+	left join mm_units as u1 on mg.small_unit_id = u1.unit_id
+	left join mm_units as u2 on mp.large_unit_id = u2.unit_id
+WHERE
+	( mp.product_name LIKE '${q_}' ) 
+	AND mp.is_active = 'Y' 
+ORDER BY
+	mp.product_name ASC 
+	LIMIT 10) as a
+        UNION ALL
+        
+        SELECT * from (
+        SELECT
+	mp.product_name,
+	mp.product_id,
+	mg.generic_code AS generic_workign_code,
+	mg.generic_name,
+    mp.generic_id,
+    mp.small_qty,
+	u1.unit_name as small_unit_name,
+	u2.unit_name as large_unit_name
+FROM
+	mm_products AS mp
+	LEFT JOIN mm_generics AS mg ON mg.generic_id = mp.generic_id
+	left join mm_units as u1 on mg.small_unit_id = u1.unit_id
+	left join mm_units as u2 on mp.large_unit_id = u2.unit_id
+WHERE
+	( mp.product_name LIKE '${_q_}' ) 
+	AND mp.is_active = 'Y' 
+ORDER BY
+	mp.product_name ASC 
+	LIMIT 10) as a) as s`;
+        return knex.raw(sql);
+    }
+    getProductPackage(knex, id) {
+        let sql = `
+    SELECT
+	mp.product_name,
+	mp.product_id,
+	mg.generic_code AS generic_workign_code,
+	mg.generic_name,
+    mp.generic_id,
+    mp.small_qty,
+	u1.unit_name as small_unit_name,
+	u2.unit_name as large_unit_name
+FROM
+	mm_products AS mp
+	LEFT JOIN mm_generics AS mg ON mg.generic_id = mp.generic_id
+	left join mm_units as u1 on mg.small_unit_id = u1.unit_id
+	left join mm_units as u2 on mp.large_unit_id = u2.unit_id
+WHERE
+	 mp.generic_id = ${id}
+	AND mp.is_active = 'Y'     
+    `;
+        return knex.raw(sql);
+    }
+    adminGetAllProductTotal(knex) {
+        let query = knex('mm_products as mp')
+            .select(knex.raw('count(mp.product_id) as total'));
+        return query;
+    }
+    adminGetSearchProductTotal(knex, query) {
+        return knex('mm_products')
+            .count('product_id as total')
+            .where('is_active', 'Y')
+            .andWhere(knex.raw(`product_name like '%${query}%' `));
+    }
     getTransactionList(knex, limit, offset) {
         let sql = `
     select * from(
     SELECT
+        mg.generic_code,
+        mg.generic_name,
         mp.product_code,
         mp.product_name,
-        mp.min_qty,
-        mp.max_qty,
-        ifnull(sum(p.qty),0) as qty,
-        uL.unit_name
+        mg.min_qty,
+        mg.max_qty,
+        ifnull(sum(p.qty * mp.small_qty),0) as qty,
+        uS.unit_name
     FROM
-        mm_products AS mp 
+        mm_generics as mg
+        LEFT JOIN mm_products AS mp on mp.generic_id = mg.generic_id
         LEFT JOIN wm_products AS p ON mp.product_id = p.product_id
         LEFT JOIN mm_units AS uL ON uL.unit_id = mp.large_unit_id
-        LEFT JOIN mm_units AS uS ON uS.unit_id = mp.small_unit_id
+        LEFT JOIN mm_units AS uS ON uS.unit_id = mg.small_unit_id
     WHERE
-        mp.is_active = 1 
+        mp.is_active = 'Y'
     GROUP BY
-        mp.product_id 
+        mg.generic_id 
     ORDER BY
-        mp.product_name ASC 
+        mg.generic_name ASC 
         LIMIT ${limit}
         offset ${offset} ) as q1
         where q1.qty < q1.min_qty
     `;
         return knex.raw(sql);
     }
-    getList(knex) {
-        return knex('generic_types');
+    addUnit(knex, items) {
+        return knex('mm_units')
+            .insert(items);
+    }
+    editUnit(knex, items, unitId) {
+        return knex('mm_units')
+            .update(items)
+            .where('unit_id', unitId);
     }
     getLot(knex, productId) {
         let sql = `SELECT
@@ -49,34 +161,119 @@ class ProductModel {
       wp.expired_date`;
         return knex.raw(sql);
     }
-    adminGetAllProducts(knex, limit, offset) {
-        let query = `SELECT
-        mp.product_code,
-        mp.product_name,
-        mp.min_qty,
-        mp.max_qty,
-        ifnull(sum(p.qty),0) as qty,
-        uL.unit_name
-    FROM
-        mm_products AS mp 
-        LEFT JOIN wm_products AS p ON mp.product_id = p.product_id
-        LEFT JOIN mm_units AS uL ON uL.unit_id = mp.large_unit_id
-        LEFT JOIN mm_units AS uS ON uS.unit_id = mp.small_unit_id
+    getUnit(knex) {
+        return knex('mm_units')
+            .orderBy('unit_name', 'asc');
+    }
+    getGenericType(knex) {
+        return knex('mm_generic_types')
+            .orderBy('generic_type_name');
+    }
+    saveAddProduct(knex, items) {
+        return knex('mm_products')
+            .insert(items);
+    }
+    saveAddGeneric(knex, items) {
+        return knex('mm_generics')
+            .insert(items);
+    }
+    productsExpired(knex) {
+        return knex('mm_generics');
+    }
+    expired(knex) {
+        let sql = `
+    SELECT * from(
+      SELECT
+        mp.*,
+        wp.wm_product_id,
+        wp.lot_no,
+        mg.num_days,
+        wp.expired_date,
+        DATEDIFF(wp.expired_date, CURDATE()) AS diff
+      FROM
+        wm_products as wp 
+        LEFT JOIN mm_products as mp on mp.product_id = wp.product_id
+        left join mm_generics as mg on mg.generic_id = mp.generic_id
+        WHERE
+        DATEDIFF(wp.expired_date, CURDATE()) < mg.num_days
+        ) as q1
+        ORDER BY q1.diff asc`;
+        return knex.raw(sql);
+    }
+    saveEditGeneric(knex, generic_id, items) {
+        return knex('mm_generics')
+            .whereIn('generic_id', generic_id)
+            .update(items);
+    }
+    saveEditProduct(knex, product_id, items) {
+        return knex('mm_products')
+            .whereIn('product_id', product_id)
+            .update(items);
+    }
+    adminGetSearchGnericTotal(knex, query) {
+        return knex('mm_generics')
+            .count('generic_id as total')
+            .where('is_active', 'Y')
+            .andWhere(knex.raw(`generic_name like '%${query}%' `));
+    }
+    adminGetAllProducts(knex, query, limit, offset) {
+        let sql = `
+    SELECT
+    mp.*,
+    mg.generic_name,
+    mg.generic_id,
+    mg.generic_code,
+    ifnull(sum(p.qty),0) as qty,
+    uL.unit_name as large_unit,
+    uS.unit_name as small_unit,
+    uL.unit_id as large_unit_id,
+    uS.unit_id as small_unit_id,
+    count(p.lot_no) as amLot
+FROM
+    mm_products AS mp 
+    LEFT JOIN wm_products AS p ON mp.product_id = p.product_id
+    left join mm_generics as mg on mg.generic_id = mp.generic_id
+    LEFT JOIN mm_units AS uL ON uL.unit_id = mp.large_unit_id
+    LEFT JOIN mm_units AS uS ON uS.unit_id = mg.small_unit_id
     WHERE
-        mp.is_active = 1 
+        mp.is_active = 'Y' 
+        and 
+        mp.product_name like '%${query}%'
     GROUP BY
         mp.product_id 
     ORDER BY
         mp.product_name ASC 
         LIMIT ${limit}
         offset ${offset}`;
-        return knex.raw(query);
+        return knex.raw(sql);
     }
-    adminGetAllProductTotal(knex) {
-        let query = knex('wm_products as p')
-            .select(knex.raw('count(distinct p.product_id) as total'))
-            .innerJoin('mm_products as mp', 'mp.product_id', 'p.product_id')
-            .innerJoin('mm_generics as mg', 'mp.generic_id', 'mg.generic_id');
+    adminGetAllGeneric(knex, query, limit, offset) {
+        let sql = `    SELECT
+
+    mg.*,
+    mu.unit_name as small_unit,
+    count(mp.product_id) as amLot,
+    gt.generic_type_name
+FROM
+    mm_generics AS mg 
+    left join mm_products as mp on mg.generic_id = mp.generic_id
+    left join mm_units as mu on mu.unit_id = mg.small_unit_id
+    left join mm_generic_types as gt on gt.generic_type_id = mg .generic_type_id
+    WHERE
+        mg.is_active = 'Y' 
+        and 
+        mg.generic_name like '%${query}%'
+    GROUP BY
+        mg.generic_id 
+    ORDER BY
+        mg.generic_name ASC 
+        LIMIT ${limit}
+        offset ${offset}`;
+        return knex.raw(sql);
+    }
+    adminGetAllGenericTotal(knex) {
+        let query = knex('mm_generics')
+            .select(knex.raw('count(generic_id) as total'));
         return query;
     }
     adminSearchProductsTotal(knex, query) {
@@ -98,7 +295,7 @@ class ProductModel {
           LEFT JOIN mm_units AS uL ON mp.large_unit_id = uL.unit_id
           LEFT JOIN mm_units AS uS ON mp.small_unit_id = uS.unit_id 
       WHERE
-          mp.is_active = 1  and (mp.product_name like ? or mp.product_code=?)
+          mp.is_active = 'Y'  and (mp.product_name like ? or mp.product_code=?)
       GROUP BY
           p.product_id 
       ORDER BY
@@ -126,7 +323,7 @@ FROM
 	LEFT JOIN mm_units AS uL ON mp.large_unit_id = uL.unit_id
 	LEFT JOIN mm_units AS uS ON mp.small_unit_id = uS.unit_id 
 WHERE
-	mp.is_active = 1  and (mp.product_name  like ? or mp.product_code=?)
+	mp.is_active = 'Y'  and (mp.product_name  like ? or mp.product_code=?)
 GROUP BY
 	p.product_id 
 ORDER BY
@@ -244,73 +441,43 @@ ORDER BY
         LIMIT 10) as a) as s`;
         return knex.raw(sql);
     }
-    adminSearchAllProducts(knex, query) {
+    adminSearchAllGenerics(knex, query) {
         let q_ = `${query}%`;
         let _q_ = `%${query}%`;
         let sql = `
         select DISTINCT * from (
        ( SELECT
-	mp.product_name,
-	mp.product_id,
-	mg.generic_code AS generic_workign_code,
-	mg.generic_name,
-    mp.generic_id,
-    mp.small_qty,
-	u1.unit_name as small_unit_name,
-	u2.unit_name as large_unit_name
+	mg.*
 FROM
-	mm_products AS mp
-	LEFT JOIN mm_generics AS mg ON mg.generic_id = mp.generic_id
-	left join mm_units as u1 on mp.small_unit_id = u1.unit_id
-	left join mm_units as u2 on mp.large_unit_id = u2.unit_id
+  mm_generics AS mg 
 WHERE
-	( mp.product_name LIKE '${query}' ) 
-	AND mp.is_active = 1 
+	( mg.generic_name LIKE '${query}' ) 
+	AND mg.is_active = 'Y' 
 	LIMIT 10 )
         UNION ALL
         SELECT * from (
         SELECT
-	mp.product_name,
-	mp.product_id,
-	mg.generic_code AS generic_workign_code,
-	mg.generic_name,
-    mp.generic_id,
-    mp.small_qty,
-	u1.unit_name as small_unit_name,
-	u2.unit_name as large_unit_name
+	mg.*
 FROM
-	mm_products AS mp
-	LEFT JOIN mm_generics AS mg ON mg.generic_id = mp.generic_id
-	left join mm_units as u1 on mp.small_unit_id = u1.unit_id
-	left join mm_units as u2 on mp.large_unit_id = u2.unit_id
+	mm_generics AS mg 
 WHERE
-	( mp.product_name LIKE '${q_}' ) 
-	AND mp.is_active = 1 
+	( mg.generic_name LIKE '${q_}' ) 
+	AND mg.is_active = 'Y' 
 ORDER BY
-	mp.product_name ASC 
+mg.generic_name ASC 
 	LIMIT 10) as a
         UNION ALL
         
         SELECT * from (
         SELECT
-	mp.product_name,
-	mp.product_id,
-	mg.generic_code AS generic_workign_code,
-	mg.generic_name,
-    mp.generic_id,
-    mp.small_qty,
-	u1.unit_name as small_unit_name,
-	u2.unit_name as large_unit_name
+	mg.*
 FROM
-	mm_products AS mp
-	LEFT JOIN mm_generics AS mg ON mg.generic_id = mp.generic_id
-	left join mm_units as u1 on mp.small_unit_id = u1.unit_id
-	left join mm_units as u2 on mp.large_unit_id = u2.unit_id
-WHERE
-	( mp.product_name LIKE '${_q_}' ) 
-	AND mp.is_active = 1 
+  mm_generics AS mg
+  WHERE
+	( mg.generic_name LIKE '${_q_}' ) 
+	AND mg.is_active = 'Y' 
 ORDER BY
-	mp.product_name ASC 
+	mg.generic_name ASC 
 	LIMIT 10) as a) as s`;
         return knex.raw(sql);
     }
