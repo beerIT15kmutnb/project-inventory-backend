@@ -16,12 +16,49 @@ const productModel = new products_1.ProductModel();
 router.get('/', (req, res, next) => {
     res.send({ ok: true, message: 'Product API server' });
 });
-router.get('/search-autocomplete', wrap((req, res, next) => __awaiter(this, void 0, void 0, function* () {
+router.put('/isactive', wrap((req, res, next) => __awaiter(this, void 0, void 0, function* () {
+    let db = req.db;
+    try {
+        let Id = req.body.id;
+        let item = {
+            is_active: req.body.is_active
+        };
+        let rs = yield productModel.isactive(db, item, Id);
+        res.send({ ok: true, rows: rs });
+    }
+    catch (error) {
+        res.send({ ok: false, error: error.message });
+    }
+    finally {
+        db.destroy();
+    }
+})));
+router.get('/search-all-autocomplete', wrap((req, res, next) => __awaiter(this, void 0, void 0, function* () {
     let db = req.db;
     const query = req.query.q;
     const labelerId = req.query.labelerId;
     try {
         let rs = yield productModel.adminSearchAllProducts(db, query);
+        if (rs[0].length) {
+            res.send(rs[0]);
+        }
+        else {
+            res.send([]);
+        }
+    }
+    catch (error) {
+        res.send({ ok: false, error: error.message });
+    }
+    finally {
+        db.destroy();
+    }
+})));
+router.get('/search-autocomplete', wrap((req, res, next) => __awaiter(this, void 0, void 0, function* () {
+    let db = req.db;
+    const query = req.query.q;
+    const labelerId = req.query.labelerId;
+    try {
+        let rs = yield productModel.searchProducts(db, query);
         if (rs[0].length) {
             res.send(rs[0]);
         }
@@ -74,12 +111,12 @@ router.post('/stock/products/all', wrap((req, res, next) => __awaiter(this, void
         db.destroy();
     }
 })));
-router.post('/transaction/list', wrap((req, res, next) => __awaiter(this, void 0, void 0, function* () {
+router.post('/transection/list', wrap((req, res, next) => __awaiter(this, void 0, void 0, function* () {
     let db = req.db;
     let limit = +req.body.limit || 50;
     let offset = +req.body.offset || 0;
     try {
-        let products = yield productModel.getTransactionList(db, limit, offset);
+        let products = yield productModel.gettransectionList(db, limit, offset);
         res.send({ ok: true, rows: products });
     }
     catch (error) {
@@ -351,6 +388,25 @@ router.post('/stock/products/search', wrap((req, res, next) => __awaiter(this, v
     }
 })));
 router.get('/generic-search-autocomplete', wrap((req, res, next) => __awaiter(this, void 0, void 0, function* () {
+    let db = req.db;
+    const query = req.query.q;
+    try {
+        let rs = yield productModel.adminSearchGenerics(db, query);
+        if (rs[0].length) {
+            res.send(rs[0]);
+        }
+        else {
+            res.send([]);
+        }
+    }
+    catch (error) {
+        res.send({ ok: false, error: error.message });
+    }
+    finally {
+        db.destroy();
+    }
+})));
+router.get('/generic-all-search-autocomplete', wrap((req, res, next) => __awaiter(this, void 0, void 0, function* () {
     let db = req.db;
     const query = req.query.q;
     try {

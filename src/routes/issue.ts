@@ -9,7 +9,7 @@ import { IssueModel } from '../models/issue';
 import { ProductModel } from '../models/products';
 import { SerialModel } from '../models/serial';
 // import { StockCard } from '../models/stockcard';
-// import { TransactionType } from '../interfaces/basic';
+// import { transectionType } from '../interfaces/basic';
 
 const router = express.Router();
 
@@ -17,10 +17,10 @@ const issueModel = new IssueModel();
 const productModel = new ProductModel();
 // const serialModel = new SerialModel();
 // const stockCardModel = new StockCard();
-router.get('/getTransactionIssues', co(async (req, res, next) => {
+router.get('/gettransectionIssues', co(async (req, res, next) => {
   let db = req.db;
   try {
-    let rs = await issueModel.getTransactionIssues(db);
+    let rs = await issueModel.gettransectionIssues(db);
     res.send({ ok: true, rows: rs });
   } catch (error) {
     res.send({ ok: false, error: error.message });
@@ -56,7 +56,7 @@ router.put('/saveIssue', co(async (req, res, next) => {
     const data: any = {
       issue_code: issueCode,
       issue_date: summary.issueDate,
-      transaction_issue_id: summary.transactionId,
+      transection_issue_id: summary.transectionId,
       comment: summary.comment,
       people_user_id: req.decoded.people_user_id,
       create_date: moment().format('YYYY-MM-DD'),
@@ -156,7 +156,7 @@ router.get('/setIssues/:issueId', co(async (req, res, next) => {
 
 //     let _summary: any = {};
 //     _summary.issue_date = summary.issueDate;
-//     _summary.transaction_issue_id = summary.transactionId;
+//     _summary.transection_issue_id = summary.transectionId;
 //     _summary.comment = summary.comment;
 //     _summary.people_user_id = req.decoded.people_user_id;
 //     _summary.created_at = moment().format('YYYY-MM-DD HH:mm:ss');
@@ -222,7 +222,7 @@ router.get('/setIssues/:issueId', co(async (req, res, next) => {
 //           objStockcard.product_id = e.product_id;
 //           objStockcard.generic_id = e.generic_id;
 //           objStockcard.unit_generic_id = e.unit_generic_id;
-//           objStockcard.transaction_type = TransactionType.ISSUE_TRANSACTION;
+//           objStockcard.transection_type = transectionType.ISSUE_transection;
 //           objStockcard.document_ref_id = e.issue_id;
 //           objStockcard.document_ref = e.issue_code;
 //           objStockcard.in_qty = 0;
@@ -233,7 +233,7 @@ router.get('/setIssues/:issueId', co(async (req, res, next) => {
 //           objStockcard.balance_unit_cost = e.balance_unit_cost;
 //           objStockcard.ref_src = warehouseId;
 //           objStockcard.ref_dst = e.ref_src;
-//           objStockcard.comment = e.transaction_name;
+//           objStockcard.comment = e.transection_name;
 //           objStockcard.balance_generic_qty = e.balance_generic;
 //           objStockcard.lot_no = e.lot_no;
 //           objStockcard.expired_date = e.expired_date;
@@ -241,7 +241,7 @@ router.get('/setIssues/:issueId', co(async (req, res, next) => {
 //         }
 //       });
 
-//       await stockCardModel.saveFastStockTransaction(db, data);
+//       await stockCardModel.saveFastStocktransection(db, data);
 //     }
 
 //     res.send({ ok: true });
@@ -264,7 +264,7 @@ router.put('/update/:issueId', co(async (req, res, next) => {
   try {
     let _summary: any = {};
     _summary.issue_date = summary.issueDate;
-    _summary.transaction_issue_id = summary.transactionId;
+    _summary.transection_issue_id = summary.transectionId;
     _summary.comment = summary.comment;
     _summary.people_user_id = req.decoded.people_user_id,
       // _summary.created_at = moment().format('YYYY-MM-DD HH:mm:ss');
@@ -325,7 +325,7 @@ router.post('/approveIssue', co(async (req, res, next) => {
       await issueModel.updateSummaryApprove(db, v, summary);
       // update wm_product
       await issueModel.saveProductStock(db, _cutProduct);
-      //       await stockCardModel.saveFastStockTransaction(db, data);
+      //       await stockCardModel.saveFastStocktransection(db, data);
     }
 
     res.send({ ok: true });
@@ -475,6 +475,71 @@ router.get('/info/products', co(async (req, res, next) => {
   try {
     let rs = await issueModel.getProductDetail(db, issueId);
     res.send({ ok: true, rows: rs[0] });
+  } catch (error) {
+    res.send({ ok: false, error: error.message });
+  } finally {
+    db.destroy();
+  }
+}));
+router.post('/addType', co(async (req, res, next) => {
+  let db = req.db;
+  try {
+    let items = req.body.items
+    console.log(items);
+    
+    let item = {
+      transection_name: items.transection_name,
+      is_active: items.is_active
+    }
+    // let genericTypeId = items.generic_type_id
+    let rs = await issueModel.addType(db, item);
+    res.send({ ok: true, rows: rs })
+  } catch (error) {
+    res.send({ ok: false, error: error.message });
+  } finally {
+    db.destroy();
+  }
+}));
+
+
+router.put('/isactive', co(async (req, res, next) => {
+  let db = req.db;
+  try {
+    let Id = req.body.id
+    let item = {
+      is_active: req.body.is_active
+    }
+   
+    let rs = await issueModel.isactive(db, item, Id);
+    res.send({ ok: true, rows: rs })
+  } catch (error) {
+    res.send({ ok: false, error: error.message });
+  } finally {
+    db.destroy();
+  }
+}));
+router.put('/editType', co(async (req, res, next) => {
+  let db = req.db;
+  try {
+    let items = req.body.items
+    let item = {
+      transection_name: items.transection_name,
+      is_active: items.is_active
+    }
+    let Id = items.transection_id
+    let rs = await issueModel.editType(db, item, Id);
+    res.send({ ok: true, rows: rs })
+  } catch (error) {
+    res.send({ ok: false, error: error.message });
+  } finally {
+    db.destroy();
+  }
+}));
+router.get('/getType', co(async (req, res, next) => {
+  let db = req.db;
+  try {
+    let rs = await issueModel.getType(db);
+    res.send({ ok: true, rows: rs })
   } catch (error) {
     res.send({ ok: false, error: error.message });
   } finally {

@@ -71,9 +71,12 @@ ORDER BY
 	LIMIT 10) as a) as s`;
         return knex.raw(sql);
     }
-    getProductPackage(knex, id) {
+    searchProducts(knex, query) {
+        let q_ = `${query}%`;
+        let _q_ = `%${query}%`;
         let sql = `
-    SELECT
+        select DISTINCT * from (
+       ( SELECT
 	mp.product_name,
 	mp.product_id,
 	mg.generic_code AS generic_workign_code,
@@ -88,8 +91,101 @@ FROM
 	left join mm_units as u1 on mg.small_unit_id = u1.unit_id
 	left join mm_units as u2 on mp.large_unit_id = u2.unit_id
 WHERE
+	( mp.product_name LIKE '${query}' ) 
+  AND mp.is_active = 'Y' 
+  and mp.product_id in (
+    select mp.product_id from 
+    mm_products as mp
+    left join wm_products as wp on wp.product_id = mp.product_id
+    where wp.qty > 0
+  )
+	LIMIT 10 )
+        UNION ALL
+        SELECT * from (
+        SELECT
+	mp.product_name,
+	mp.product_id,
+	mg.generic_code AS generic_workign_code,
+	mg.generic_name,
+    mp.generic_id,
+    mp.small_qty,
+	u1.unit_name as small_unit_name,
+	u2.unit_name as large_unit_name
+FROM
+	mm_products AS mp
+	LEFT JOIN mm_generics AS mg ON mg.generic_id = mp.generic_id
+	left join mm_units as u1 on mg.small_unit_id = u1.unit_id
+	left join mm_units as u2 on mp.large_unit_id = u2.unit_id
+WHERE
+	( mp.product_name LIKE '${q_}' ) 
+  AND mp.is_active = 'Y' 
+  and mp.product_id in (
+    select mp.product_id from 
+    mm_products as mp
+    left join wm_products as wp on wp.product_id = mp.product_id
+    where wp.qty > 0
+  )
+ORDER BY
+	mp.product_name ASC 
+	LIMIT 10) as a
+        UNION ALL
+        
+        SELECT * from (
+        SELECT
+	mp.product_name,
+	mp.product_id,
+	mg.generic_code AS generic_workign_code,
+	mg.generic_name,
+    mp.generic_id,
+    mp.small_qty,
+	u1.unit_name as small_unit_name,
+	u2.unit_name as large_unit_name
+FROM
+	mm_products AS mp
+	LEFT JOIN mm_generics AS mg ON mg.generic_id = mp.generic_id
+	left join mm_units as u1 on mg.small_unit_id = u1.unit_id
+	left join mm_units as u2 on mp.large_unit_id = u2.unit_id
+WHERE
+	( mp.product_name LIKE '${_q_}' ) 
+  AND mp.is_active = 'Y' 
+  and mp.product_id in (
+    select mp.product_id from 
+    mm_products as mp
+    left join wm_products as wp on wp.product_id = mp.product_id
+    where wp.qty > 0
+  )
+ORDER BY
+	mp.product_name ASC 
+	LIMIT 10) as a) as s`;
+        return knex.raw(sql);
+    }
+    getProductPackage(knex, id) {
+        let sql = `
+    SELECT
+	mp.product_name,
+	mp.product_id,
+	mg.generic_code AS generic_workign_code,
+	mg.generic_name,
+    mp.generic_id,
+    mp.small_qty,
+	u1.unit_name as small_unit_name,
+	u2.unit_name as large_unit_name
+FROM
+  mm_products AS mp
+	LEFT JOIN wm_products AS wp ON wp.product_id = mp.product_id  
+	LEFT JOIN mm_generics AS mg ON mg.generic_id = mp.generic_id
+	left join mm_units as u1 on mg.small_unit_id = u1.unit_id
+	left join mm_units as u2 on mp.large_unit_id = u2.unit_id
+WHERE
 	 mp.generic_id = ${id}
-	AND mp.is_active = 'Y'     
+  AND mp.is_active = 'Y' 
+  and mp.product_id in (
+    select mp.product_id from 
+    mm_products as mp
+    left join wm_products as wp on wp.product_id = mp.product_id
+    where wp.qty > 0
+  )
+  group by  mp.product_id
     `;
         return knex.raw(sql);
     }
@@ -104,7 +200,7 @@ WHERE
             .where('is_active', 'Y')
             .andWhere(knex.raw(`product_name like '%${query}%' `));
     }
-    getTransactionList(knex, limit, offset) {
+    gettransectionList(knex, limit, offset) {
         let sql = `
     select * from(
     SELECT
@@ -139,6 +235,11 @@ WHERE
             .insert(items);
     }
     editUnit(knex, items, unitId) {
+        return knex('mm_units')
+            .update(items)
+            .where('unit_id', unitId);
+    }
+    isactive(knex, items, unitId) {
         return knex('mm_units')
             .update(items)
             .where('unit_id', unitId);
@@ -476,6 +577,68 @@ FROM
   WHERE
 	( mg.generic_name LIKE '${_q_}' ) 
 	AND mg.is_active = 'Y' 
+ORDER BY
+	mg.generic_name ASC 
+	LIMIT 10) as a) as s`;
+        return knex.raw(sql);
+    }
+    adminSearchGenerics(knex, query) {
+        let q_ = `${query}%`;
+        let _q_ = `%${query}%`;
+        let sql = `
+        select DISTINCT * from (
+       ( SELECT
+	mg.*
+FROM
+  mm_generics AS mg
+   
+WHERE
+	( mg.generic_name LIKE '${query}' ) 
+  AND mg.is_active = 'Y' 
+  and mg.generic_id in (
+    select mp.generic_id from 
+    mm_products as mp
+    left join wm_products as wp on wp.product_id = mp.product_id
+    where wp.qty > 0
+    group by  mp.generic_id
+  )
+	LIMIT 10 )
+        UNION ALL
+        SELECT * from (
+        SELECT
+	mg.*
+FROM
+	mm_generics AS mg 
+WHERE
+	( mg.generic_name LIKE '${q_}' ) 
+  AND mg.is_active = 'Y' 
+  and mg.generic_id in (
+    select mp.generic_id from 
+    mm_products as mp
+    left join wm_products as wp on wp.product_id = mp.product_id
+    where wp.qty > 0
+    group by  mp.generic_id
+  )
+ORDER BY
+mg.generic_name ASC 
+	LIMIT 10) as a
+        UNION ALL
+        
+        SELECT * from (
+        SELECT
+	mg.*
+FROM
+  mm_generics AS mg
+  WHERE
+	( mg.generic_name LIKE '${_q_}' ) 
+  AND mg.is_active = 'Y' 
+  and mg.generic_id in (
+    select mp.generic_id from 
+    mm_products as mp
+    left join wm_products as wp on wp.product_id = mp.product_id
+    where wp.qty > 0
+    group by  mp.generic_id
+  )
 ORDER BY
 	mg.generic_name ASC 
 	LIMIT 10) as a) as s`;

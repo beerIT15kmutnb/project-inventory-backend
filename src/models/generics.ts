@@ -16,4 +16,9 @@ export class GenericModel {
             .update(items)
             .where('generic_type_id', genericTypeId)
     }
+    isactive(knex: Knex, items: any, genericTypeId: any) {
+        return knex('mm_generic_types')
+            .update(items)
+            .where('generic_type_id', genericTypeId)
+    }
 }

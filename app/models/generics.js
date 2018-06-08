@@ -14,6 +14,11 @@ class GenericModel {
             .update(items)
             .where('generic_type_id', genericTypeId);
     }
+    isactive(knex, items, genericTypeId) {
+        return knex('mm_generic_types')
+            .update(items)
+            .where('generic_type_id', genericTypeId);
+    }
 }
 exports.GenericModel = GenericModel;
 //# sourceMappingURL=generics.js.map

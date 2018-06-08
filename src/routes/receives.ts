@@ -27,7 +27,7 @@ import { ProductModel } from "../models/products";
 // import { PeopleModel } from '../models/people';
 import { SerialModel } from '../models/serial';
 // import { StockCard } from '../models/stockcard';
-// import { TransactionType } from '../interfaces/basic';
+// import { transectionType } from '../interfaces/basic';
 // import { PeriodModel } from '../models/period';
 
 const router = express.Router();

@@ -16,10 +16,10 @@ const products_1 = require("../models/products");
 const router = express.Router();
 const issueModel = new issue_1.IssueModel();
 const productModel = new products_1.ProductModel();
-router.get('/getTransactionIssues', co((req, res, next) => __awaiter(this, void 0, void 0, function* () {
+router.get('/gettransectionIssues', co((req, res, next) => __awaiter(this, void 0, void 0, function* () {
     let db = req.db;
     try {
-        let rs = yield issueModel.getTransactionIssues(db);
+        let rs = yield issueModel.gettransectionIssues(db);
         res.send({ ok: true, rows: rs });
     }
     catch (error) {
@@ -57,7 +57,7 @@ router.put('/saveIssue', co((req, res, next) => __awaiter(this, void 0, void 0, 
         const data = {
             issue_code: issueCode,
             issue_date: summary.issueDate,
-            transaction_issue_id: summary.transactionId,
+            transection_issue_id: summary.transectionId,
             comment: summary.comment,
             people_user_id: req.decoded.people_user_id,
             create_date: moment().format('YYYY-MM-DD'),
@@ -145,7 +145,7 @@ router.put('/update/:issueId', co((req, res, next) => __awaiter(this, void 0, vo
     try {
         let _summary = {};
         _summary.issue_date = summary.issueDate;
-        _summary.transaction_issue_id = summary.transactionId;
+        _summary.transection_issue_id = summary.transectionId;
         _summary.comment = summary.comment;
         _summary.people_user_id = req.decoded.people_user_id,
             yield issueModel.updateSummary(db, issueId, _summary);
@@ -244,6 +244,74 @@ router.get('/info/products', co((req, res, next) => __awaiter(this, void 0, void
     try {
         let rs = yield issueModel.getProductDetail(db, issueId);
         res.send({ ok: true, rows: rs[0] });
+    }
+    catch (error) {
+        res.send({ ok: false, error: error.message });
+    }
+    finally {
+        db.destroy();
+    }
+})));
+router.post('/addType', co((req, res, next) => __awaiter(this, void 0, void 0, function* () {
+    let db = req.db;
+    try {
+        let items = req.body.items;
+        console.log(items);
+        let item = {
+            transection_name: items.transection_name,
+            is_active: items.is_active
+        };
+        let rs = yield issueModel.addType(db, item);
+        res.send({ ok: true, rows: rs });
+    }
+    catch (error) {
+        res.send({ ok: false, error: error.message });
+    }
+    finally {
+        db.destroy();
+    }
+})));
+router.put('/isactive', co((req, res, next) => __awaiter(this, void 0, void 0, function* () {
+    let db = req.db;
+    try {
+        let Id = req.body.id;
+        let item = {
+            is_active: req.body.is_active
+        };
+        let rs = yield issueModel.isactive(db, item, Id);
+        res.send({ ok: true, rows: rs });
+    }
+    catch (error) {
+        res.send({ ok: false, error: error.message });
+    }
+    finally {
+        db.destroy();
+    }
+})));
+router.put('/editType', co((req, res, next) => __awaiter(this, void 0, void 0, function* () {
+    let db = req.db;
+    try {
+        let items = req.body.items;
+        let item = {
+            transection_name: items.transection_name,
+            is_active: items.is_active
+        };
+        let Id = items.transection_id;
+        let rs = yield issueModel.editType(db, item, Id);
+        res.send({ ok: true, rows: rs });
+    }
+    catch (error) {
+        res.send({ ok: false, error: error.message });
+    }
+    finally {
+        db.destroy();
+    }
+})));
+router.get('/getType', co((req, res, next) => __awaiter(this, void 0, void 0, function* () {
+    let db = req.db;
+    try {
+        let rs = yield issueModel.getType(db);
+        res.send({ ok: true, rows: rs });
     }
     catch (error) {
         res.send({ ok: false, error: error.message });

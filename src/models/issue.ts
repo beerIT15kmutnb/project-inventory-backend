@@ -2,8 +2,8 @@ import Knex = require('knex');
 import * as moment from 'moment';
 
 export class IssueModel {
-  getTransactionIssues(knex: Knex) {
-    return knex('wm_transaction_issues')
+  gettransectionIssues(knex: Knex) {
+    return knex('wm_transection_issues')
 
   }
 
@@ -32,7 +32,7 @@ export class IssueModel {
       .whereRaw('mp.generic_id=wd.generic_id and wp.warehouse_id=wd.warehouse_id');
 
     return knex('wm_issue_detail as wd')
-      .select('wd.*', 'mp.generic_id', 'iss.approved', 'iss.issue_code', 'wp.cost', 'iss.transaction_issue_id', sqlBalance)
+      .select('wd.*', 'mp.generic_id', 'iss.approved', 'iss.issue_code', 'wp.cost', 'iss.transection_issue_id', sqlBalance)
       .innerJoin('mm_generics as mg', 'mg.generic_id', 'wd.generic_id')
       .innerJoin('mm_products as mp', 'mp.generic_id', 'mg.generic_id')
       .joinRaw('inner join wm_products as wp on wp.product_id=mp.product_id')
@@ -223,8 +223,8 @@ export class IssueModel {
       .as('total');
 
     let query = knex('wm_issue_summary as ss')
-      .select('ss.*', 'ts.transaction_name', subQuery)
-      .leftJoin('wm_transaction_issues as ts', 'ts.transaction_id', 'ss.transaction_issue_id')
+      .select('ss.*', 'ts.transection_name', subQuery)
+      .leftJoin('wm_transection_issues as ts', 'ts.transection_id', 'ss.transection_issue_id')
       .orderBy('ss.issue_id', 'desc');
 
     if (status) {
@@ -235,6 +235,25 @@ export class IssueModel {
 
   }
   //use
+  addType(knex: Knex, items: any) {
+    return knex('wm_transection_issues')
+        .insert(items)
+
+}
+
+isactive(knex: Knex, items: any, Id: any) {
+  return knex('wm_transection_issues')
+      .update(items)
+      .where('transection_id', Id)
+}
+editType(knex: Knex, items: any, Id: any) {
+    return knex('wm_transection_issues')
+        .update(items)
+        .where('transection_id', Id)
+}
+  getType(knex: Knex){
+    return knex('wm_transection_issues')
+  }
   getListIssuesDetail(knex: Knex, id:any) {
 
     let subQuery = knex('wm_issue_products as sd')
@@ -243,8 +262,8 @@ export class IssueModel {
       .as('total');
 
     let query = knex('wm_issues as ss')
-      .select('ss.*', 'ts.transaction_name', subQuery)
-      .leftJoin('wm_transaction_issues as ts', 'ts.transaction_id', 'ss.transaction_issue_id')
+      .select('ss.*', 'ts.transection_name', subQuery)
+      .leftJoin('wm_transection_issues as ts', 'ts.transection_id', 'ss.transection_issue_id')
       .where('ss.issue_id', id);
 
     if (status) {
@@ -262,8 +281,8 @@ export class IssueModel {
       .as('total');
 
     let query = knex('wm_issues as ss')
-      .select('ss.*', 'ts.transaction_name', subQuery)
-      .leftJoin('wm_transaction_issues as ts', 'ts.transaction_id', 'ss.transaction_issue_id')
+      .select('ss.*', 'ts.transection_name', subQuery)
+      .leftJoin('wm_transection_issues as ts', 'ts.transection_id', 'ss.transection_issue_id')
       .orderBy('ss.issue_id', 'desc');
 
     if (status) {
@@ -302,8 +321,8 @@ export class IssueModel {
       .as('total');
 
     let query = knex('wm_issue_summary as ss')
-      .select('ss.*', 'ts.transaction_name', subQuery)
-      .leftJoin('wm_transaction_issues as ts', 'ts.transaction_id', 'ss.transaction_issue_id')
+      .select('ss.*', 'ts.transection_name', subQuery)
+      .leftJoin('wm_transection_issues as ts', 'ts.transection_id', 'ss.transection_issue_id')
       .where('ss.warehouse_id', warehouseId)
       .limit(limit).offset(offset);
 
@@ -317,7 +336,7 @@ export class IssueModel {
 
     //   let sql = `
     //   SELECT
-    //   ss.*, ts.transaction_name,
+    //   ss.*, ts.transection_name,
     //   (
     //     SELECT
     //       count(*)
@@ -328,7 +347,7 @@ export class IssueModel {
     //   ) AS total
     // FROM
     //   wm_issue_summary AS ss
-    // LEFT JOIN wm_transaction_issues AS ts ON ts.transaction_id = ss.transaction_issue_id
+    // LEFT JOIN wm_transection_issues AS ts ON ts.transection_id = ss.transection_issue_id
     // WHERE
     //   ss.warehouse_id = ?
     // ORDER BY
@@ -370,13 +389,13 @@ export class IssueModel {
     wp.expired_date,
     ( SELECT sum( wp2.qty ) FROM wm_products wp2 WHERE wp2.wm_product_id = sp.wm_product_id ) balance_qty,
     ss.issue_id AS ref_src,
-    ts.transaction_name 
+    ts.transection_name 
   FROM
     wm_issues ss
     JOIN wm_issue_products sg ON ss.issue_id = sg.issue_id
     LEFT JOIN wm_issue_product_detail sp ON sg.issue_product_id = sp.issue_product_id
     LEFT JOIN wm_products wp ON sp.wm_product_id = wp.wm_product_id
-    LEFT JOIN wm_transaction_issues ts ON ss.transaction_issue_id = ts.transaction_id 
+    LEFT JOIN wm_transection_issues ts ON ss.transection_issue_id = ts.transection_id 
   WHERE
     ss.issue_id = ${id} 
     AND sp.qty != 0`

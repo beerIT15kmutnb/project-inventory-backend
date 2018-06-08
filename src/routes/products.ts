@@ -17,7 +17,22 @@ router.get('/', (req, res, next) => {
 
 
 /////////////////////////////////////
-router.get('/search-autocomplete', wrap(async (req, res, next) => {
+router.put('/isactive', wrap(async (req, res, next) => {
+  let db = req.db;
+  try {
+    let Id = req.body.id
+    let item = {
+      is_active: req.body.is_active
+    }
+    let rs = await productModel.isactive(db, item, Id);
+    res.send({ ok: true, rows: rs })
+  } catch (error) {
+    res.send({ ok: false, error: error.message });
+  } finally {
+    db.destroy();
+  }
+}));
+router.get('/search-all-autocomplete', wrap(async (req, res, next) => {
 
   let db = req.db;
   const query = req.query.q;
@@ -37,7 +52,26 @@ router.get('/search-autocomplete', wrap(async (req, res, next) => {
   }
 
 }));
+router.get('/search-autocomplete', wrap(async (req, res, next) => {
 
+  let db = req.db;
+  const query = req.query.q;
+  const labelerId = req.query.labelerId;
+
+  try {
+    let rs: any = await productModel.searchProducts(db, query);
+    if (rs[0].length) {
+      res.send(rs[0]);
+    } else {
+      res.send([]);
+    }
+  } catch (error) {
+    res.send({ ok: false, error: error.message });
+  } finally {
+    db.destroy();
+  }
+
+}));
 router.get('/getProductPackage/:id', wrap(async (req, res, next) => {
   let db = req.db;
   let id = req.params.id
@@ -80,12 +114,12 @@ router.post('/stock/products/all', wrap(async (req, res, next) => {
 
 
 
-router.post('/transaction/list', wrap(async (req, res, next) => {
+router.post('/transection/list', wrap(async (req, res, next) => {
   let db = req.db;
   let limit = +req.body.limit || 50;
   let offset = +req.body.offset || 0;
   try {
-    let products = await productModel.getTransactionList(db, limit, offset);
+    let products = await productModel.gettransectionList(db, limit, offset);
     res.send({ ok: true, rows: products })
   } catch (error) {
     res.send({ ok: false, error: error.message });
@@ -347,6 +381,27 @@ router.post('/stock/products/search', wrap(async (req, res, next) => {
 
 
 router.get('/generic-search-autocomplete', wrap(async (req, res, next) => {
+
+  let db = req.db;
+  const query = req.query.q;
+
+  try {
+    let rs = await productModel.adminSearchGenerics(db, query);
+
+
+    if (rs[0].length) {
+      res.send(rs[0]);
+    } else {
+      res.send([]);
+    }
+  } catch (error) {
+    res.send({ ok: false, error: error.message });
+  } finally {
+    db.destroy();
+  }
+
+}));
+router.get('/generic-all-search-autocomplete', wrap(async (req, res, next) => {
 
   let db = req.db;
   const query = req.query.q;

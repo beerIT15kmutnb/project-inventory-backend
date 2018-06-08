@@ -1099,7 +1099,7 @@ router.put('/orders/updateRequisitionOrder/:requisitionId', co(async (req, res, 
 //             objStockcardOut.product_id = v.product_id;
 //             objStockcardOut.generic_id = v.generic_id;
 //             objStockcardOut.unit_generic_id = v.unit_generic_id;
-//             objStockcardOut.transaction_type = 'REQ_OUT';
+//             objStockcardOut.transection_type = 'REQ_OUT';
 //             objStockcardOut.document_ref_id = v.requisition_order_id;
 //             objStockcardOut.document_ref = v.requisition_code;
 //             objStockcardOut.lot_no = v.lot_no;
@@ -1134,7 +1134,7 @@ router.put('/orders/updateRequisitionOrder/:requisitionId', co(async (req, res, 
 //             objStockcardIn.product_id = v.product_id;
 //             objStockcardIn.generic_id = v.generic_id;
 //             objStockcardIn.unit_generic_id = v.unit_generic_id;
-//             objStockcardIn.transaction_type = 'REQ_IN';
+//             objStockcardIn.transection_type = 'REQ_IN';
 //             objStockcardIn.document_ref_id = v.requisition_order_id;
 //             objStockcardIn.document_ref = v.requisition_code;
 //             objStockcardIn.lot_no = v.lot_no;
@@ -1292,7 +1292,7 @@ router.put('/orders/updateRequisitionOrder/:requisitionId', co(async (req, res, 
 //       objStockcardOut.product_id = v.product_id;
 //       objStockcardOut.generic_id = v.generic_id;
 //       objStockcardOut.unit_generic_id = v.unit_generic_id;
-//       objStockcardOut.transaction_type = 'REQ_OUT';
+//       objStockcardOut.transection_type = 'REQ_OUT';
 //       objStockcardOut.document_ref_id = v.requisition_code;
 //       objStockcardOut.in_qty = 0;
 //       objStockcardOut.in_unit_cost = 0;
@@ -1325,7 +1325,7 @@ router.put('/orders/updateRequisitionOrder/:requisitionId', co(async (req, res, 
 //       objStockcardIn.product_id = v.product_id;
 //       objStockcardIn.generic_id = v.generic_id;
 //       objStockcardIn.unit_generic_id = v.unit_generic_id;
-//       objStockcardIn.transaction_type = 'REQ_IN';
+//       objStockcardIn.transection_type = 'REQ_IN';
 //       objStockcardIn.document_ref_id = v.requisition_code;
 //       objStockcardIn.in_qty = v.confirm_qty;
 //       objStockcardIn.in_unit_cost = v.cost;

@@ -536,11 +536,11 @@ CREATE TABLE `wm_issues`  (
   `issue_id` int(11) NOT NULL AUTO_INCREMENT,
   `issue_code` varchar(15) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
   `issue_date` date DEFAULT NULL,
-  `transaction_issue_id` int(11) NOT NULL,
+  `transection_issue_id` int(11) NOT NULL,
   `people_user_id` varchar(13) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY USING BTREE (`issue_id`),
-  INDEX `wm_issues_fk0` USING BTREE(`transaction_issue_id`),
+  INDEX `wm_issues_fk0` USING BTREE(`transection_issue_id`),
   INDEX `wm_issues_fk1` USING BTREE(`people_user_id`)
 ) ENGINE = MyISAM AUTO_INCREMENT = 1 CHARACTER SET = utf8 COLLATE = utf8_unicode_ci ROW_FORMAT = Dynamic;
 
@@ -765,13 +765,13 @@ CREATE TABLE `wm_reqisition_orders`  (
 ) ENGINE = MyISAM AUTO_INCREMENT = 1 CHARACTER SET = utf8 COLLATE = utf8_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Table structure for wm_transaction_issues
+-- Table structure for wm_transection_issues
 -- ----------------------------
-DROP TABLE IF EXISTS `wm_transaction_issues`;
-CREATE TABLE `wm_transaction_issues`  (
-  `transaction_id` int(11) NOT NULL AUTO_INCREMENT,
-  `transaction_name` varchar(200) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
-  PRIMARY KEY USING BTREE (`transaction_id`)
+DROP TABLE IF EXISTS `wm_transection_issues`;
+CREATE TABLE `wm_transection_issues`  (
+  `transection_id` int(11) NOT NULL AUTO_INCREMENT,
+  `transection_name` varchar(200) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
+  PRIMARY KEY USING BTREE (`transection_id`)
 ) ENGINE = MyISAM AUTO_INCREMENT = 1 CHARACTER SET = utf8 COLLATE = utf8_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------

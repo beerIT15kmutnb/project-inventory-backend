@@ -63,5 +63,22 @@ router.put('/editType', co((req, res, next) => __awaiter(this, void 0, void 0, f
         db.destroy();
     }
 })));
+router.put('/isactive', co((req, res, next) => __awaiter(this, void 0, void 0, function* () {
+    let db = req.db;
+    try {
+        let Id = req.body.id;
+        let item = {
+            is_active: req.body.is_active
+        };
+        let rs = yield genericModel.isactive(db, item, Id);
+        res.send({ ok: true, rows: rs });
+    }
+    catch (error) {
+        res.send({ ok: false, error: error.message });
+    }
+    finally {
+        db.destroy();
+    }
+})));
 exports.default = router;
 //# sourceMappingURL=generics.js.map
