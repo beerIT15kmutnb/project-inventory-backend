@@ -340,27 +340,26 @@ router.post('/approveIssue', co(async (req, res, next) => {
 
 }));
 
-// router.delete('/:issueId', co(async (req, res, next) => {
+router.delete('/remove', co(async (req, res, next) => {
 
-//   let db = req.db;
-//   let issueId = req.params.issueId;
+  let db = req.db;
+  let issueId = req.query.issues;
 
-//   try {
+  try {
 
-//     let data: any = {};
-//     data.cancel_people_user_id = req.decoded.people_user_id;
-//     data.is_cancel = 'Y';
-//     // await issueModel.removeGenerics(db, issueId);
-//     await issueModel.removeIssueSummary(db, issueId, data);
+    let data: any = {};
+    data.is_cancel = 'Y';
+    // await issueModel.removeGenerics(db, issueId);
+    await issueModel.removeIssueSummary(db, issueId, data);
 
-//     res.send({ ok: true });
-//   } catch (error) {
-//     res.send({ ok: false, error: error.message });
-//   } finally {
-//     db.destroy();
-//   }
+    res.send({ ok: true });
+  } catch (error) {
+    res.send({ ok: false, error: error.message });
+  } finally {
+    db.destroy();
+  }
 
-// }));
+}));
 
 // router.get('/product-warehouse-lots/:productId/:warehouseId', co(async (req, res, next) => {
 

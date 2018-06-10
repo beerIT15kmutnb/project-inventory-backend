@@ -513,23 +513,23 @@ router.get('/products', co(async (req, res, next) => {
   }
 }));
 
-// router.delete('/remove', co(async (req, res, next) => {
-//   let db = req.db;
-//   let receiveId = req.query.receiveId;
-//   if (receiveId) {
-//     try {
-//       let peopleUserId: any = req.decoded.people_user_id;
-//       await receiveModel.removeReceive(db, receiveId, peopleUserId)
-//       res.send({ ok: true })
-//     } catch (error) {
-//       res.send({ ok: false, error: error.message });
-//     } finally {
-//       db.destroy();
-//     }
-//   } else {
-//     res.send({ ok: false, error: 'กรุณาระบุเลขที่ใบรับ' });
-//   }
-// }));
+router.delete('/remove', co(async (req, res, next) => {
+  let db = req.db;
+  let receiveId = req.query.receiveId;
+  if (receiveId) {
+    try {
+      let peopleUserId: any = req.decoded.people_user_id;
+      await receiveModel.removeReceive(db, receiveId, peopleUserId)
+      res.send({ ok: true })
+    } catch (error) {
+      res.send({ ok: false, error: error.message });
+    } finally {
+      db.destroy();
+    }
+  } else {
+    res.send({ ok: false, error: 'กรุณาระบุเลขที่ใบรับ' });
+  }
+}));
 
 // router.get('/purchases/list', co(async (req, res, nex) => {
 //   let limit = req.query.limit;
@@ -727,10 +727,11 @@ router.post('/status', co(async (req, res, next) => {
   let db = req.db;
   let limit = +req.body.limit;
   let offset = +req.body.offset;
+  let status = req.body.status;
   try {
-    let rsTotal = await receiveModel.getReceiveStatusTotal(db);
+    let rsTotal = await receiveModel.getReceiveStatusTotal(db,status);
     let total = +rsTotal[0][0].total;
-    const results = await receiveModel.getReceiveStatus(db, limit, offset);
+    const results = await receiveModel.getReceiveStatus(db, limit, offset,status);
     res.send({ ok: true, rows: results[0], total: total });
   } catch (error) {
     console.log(error);

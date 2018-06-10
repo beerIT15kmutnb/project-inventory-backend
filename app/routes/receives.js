@@ -176,6 +176,26 @@ router.get('/products', co((req, res, next) => __awaiter(this, void 0, void 0, f
         res.send({ ok: false, error: 'กรุณาระบุเลขที่ใบรับ' });
     }
 })));
+router.delete('/remove', co((req, res, next) => __awaiter(this, void 0, void 0, function* () {
+    let db = req.db;
+    let receiveId = req.query.receiveId;
+    if (receiveId) {
+        try {
+            let peopleUserId = req.decoded.people_user_id;
+            yield receiveModel.removeReceive(db, receiveId, peopleUserId);
+            res.send({ ok: true });
+        }
+        catch (error) {
+            res.send({ ok: false, error: error.message });
+        }
+        finally {
+            db.destroy();
+        }
+    }
+    else {
+        res.send({ ok: false, error: 'กรุณาระบุเลขที่ใบรับ' });
+    }
+})));
 router.get('/info', co((req, res, nex) => __awaiter(this, void 0, void 0, function* () {
     try {
         let db = req.db;
@@ -199,10 +219,11 @@ router.post('/status', co((req, res, next) => __awaiter(this, void 0, void 0, fu
     let db = req.db;
     let limit = +req.body.limit;
     let offset = +req.body.offset;
+    let status = req.body.status;
     try {
-        let rsTotal = yield receiveModel.getReceiveStatusTotal(db);
+        let rsTotal = yield receiveModel.getReceiveStatusTotal(db, status);
         let total = +rsTotal[0][0].total;
-        const results = yield receiveModel.getReceiveStatus(db, limit, offset);
+        const results = yield receiveModel.getReceiveStatus(db, limit, offset, status);
         res.send({ ok: true, rows: results[0], total: total });
     }
     catch (error) {

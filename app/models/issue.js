@@ -44,7 +44,7 @@ class IssueModel {
     WHERE ip.issue_id = ${issueId}`);
     }
     removeIssueSummary(knex, issueId, data) {
-        return knex('wm_issue_summary')
+        return knex('wm_issues')
             .where('issue_id', issueId)
             .update(data);
     }

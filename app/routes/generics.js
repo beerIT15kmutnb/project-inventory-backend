@@ -26,6 +26,20 @@ router.get('/getGenericType', co((req, res, next) => __awaiter(this, void 0, voi
         db.destroy();
     }
 })));
+router.get('/detail/:genericId', co((req, res, next) => __awaiter(this, void 0, void 0, function* () {
+    let db = req.db;
+    let genericId = req.params.genericId;
+    try {
+        let rs = yield genericModel.getGeneric(db, genericId);
+        res.send({ ok: true, rows: rs });
+    }
+    catch (error) {
+        res.send({ ok: false, error: error.message });
+    }
+    finally {
+        db.destroy();
+    }
+})));
 router.put('/addType', co((req, res, next) => __awaiter(this, void 0, void 0, function* () {
     let db = req.db;
     try {

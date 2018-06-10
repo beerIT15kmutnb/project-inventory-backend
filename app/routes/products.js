@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express = require("express");
+const moment = require("moment");
 const wrap = require("co-express");
 const products_1 = require("../models/products");
 const router = express.Router();
@@ -16,6 +17,59 @@ const productModel = new products_1.ProductModel();
 router.get('/', (req, res, next) => {
     res.send({ ok: true, message: 'Product API server' });
 });
+router.post('/alert-expired', wrap((req, res, next) => __awaiter(this, void 0, void 0, function* () {
+    let db = req.db;
+    try {
+        let Id = Array.isArray[req.body.ids] ? req.body.ids : [req.body.ids];
+        let numDays = {
+            num_days: req.body.numDays
+        };
+        console.log(numDays, Id);
+        let rs = yield productModel.alertExpired(db, numDays, Id);
+        res.send({ ok: true, rows: rs });
+    }
+    catch (error) {
+        console.log(error);
+        res.send({ ok: false, error: error.message });
+    }
+    finally {
+        db.destroy();
+    }
+})));
+router.put('/is-active-product', wrap((req, res, next) => __awaiter(this, void 0, void 0, function* () {
+    let db = req.db;
+    try {
+        let Id = req.body.id;
+        let item = {
+            is_active: req.body.is_active
+        };
+        let rs = yield productModel.isActiveProduct(db, item, Id);
+        res.send({ ok: true, rows: rs });
+    }
+    catch (error) {
+        res.send({ ok: false, error: error.message });
+    }
+    finally {
+        db.destroy();
+    }
+})));
+router.put('/is-active-generic', wrap((req, res, next) => __awaiter(this, void 0, void 0, function* () {
+    let db = req.db;
+    try {
+        let Id = req.body.id;
+        let item = {
+            is_active: req.body.is_active
+        };
+        let rs = yield productModel.isActiveGeneric(db, item, Id);
+        res.send({ ok: true, rows: rs });
+    }
+    catch (error) {
+        res.send({ ok: false, error: error.message });
+    }
+    finally {
+        db.destroy();
+    }
+})));
 router.put('/isactive', wrap((req, res, next) => __awaiter(this, void 0, void 0, function* () {
     let db = req.db;
     try {
@@ -103,6 +157,85 @@ router.post('/stock/products/all', wrap((req, res, next) => __awaiter(this, void
         }
         rs = yield productModel.adminGetAllProducts(db, query, limit, offset);
         res.send({ ok: true, rows: rs, total: rsTotal[0].total });
+    }
+    catch (error) {
+        res.send({ ok: false, error: error.message });
+    }
+    finally {
+        db.destroy();
+    }
+})));
+router.post('/saveAdditionOrder', wrap((req, res, next) => __awaiter(this, void 0, void 0, function* () {
+    let db = req.db;
+    let order = req.body.order;
+    let items = req.body.items;
+    let people_id = req.decoded.people_id;
+    let year = moment(order.requisition_date, 'YYYY-MM-DD').get('year');
+    let month = moment(order.requisition_date, 'YYYY-MM-DD').get('month') + 1;
+    try {
+        let reqsCode;
+        let _reqsCode;
+        let _reqsTmpCode;
+        const totalreqs = yield productModel.getSerial(db);
+        if (totalreqs[0]) {
+            _reqsCode = 'AD-';
+            var pad_char = '0';
+            var pad = new Array(1 + 8).join(pad_char);
+            _reqsCode += (pad + (+totalreqs[0].total + 1)).slice(-pad.length);
+        }
+        _reqsTmpCode = _reqsCode;
+        if (order.requisition_code) {
+            reqsCode = order.requisition_code;
+        }
+        else {
+            reqsCode = _reqsCode;
+        }
+        order.addition_code = reqsCode;
+        order.create_date = moment().format('YYYY-MM-DD');
+        let rsOrder = yield productModel.saveOrder(db, order);
+        let requisitionId = rsOrder[0];
+        let item = [];
+        items.forEach((v) => {
+            let obj = {
+                addition_id: requisitionId,
+                generic_id: v.generic_id,
+                requisition_qty: v.requisition_qty
+            };
+            item.push(obj);
+        });
+        console.log(order, items);
+        yield productModel.saveItems(db, item);
+        res.send({ ok: true });
+    }
+    catch (error) {
+        res.send({ ok: false, error: error.message });
+    }
+    finally {
+        db.destroy();
+    }
+})));
+router.get('/addition-detail/:additionId', wrap((req, res, next) => __awaiter(this, void 0, void 0, function* () {
+    let db = req.db;
+    let additionId = req.params.additionId;
+    console.log(additionId);
+    try {
+        let products = yield productModel.setAddDetail(db, additionId);
+        res.send({ ok: true, rows: products });
+    }
+    catch (error) {
+        res.send({ ok: false, error: error.message });
+    }
+    finally {
+        db.destroy();
+    }
+})));
+router.post('/addition/list', wrap((req, res, next) => __awaiter(this, void 0, void 0, function* () {
+    let db = req.db;
+    let limit = +req.body.limit || 50;
+    let offset = +req.body.offset || 0;
+    try {
+        let products = yield productModel.getAdditionList(db, limit, offset);
+        res.send({ ok: true, rows: products });
     }
     catch (error) {
         res.send({ ok: false, error: error.message });
@@ -220,6 +353,19 @@ router.get('/productsExpired', wrap((req, res, next) => __awaiter(this, void 0, 
     let db = req.db;
     try {
         let products = yield productModel.productsExpired(db);
+        res.send({ ok: true, data: products });
+    }
+    catch (error) {
+        res.send({ ok: false, error: error.message });
+    }
+    finally {
+        db.destroy();
+    }
+})));
+router.get('/productsExpired/unset', wrap((req, res, next) => __awaiter(this, void 0, void 0, function* () {
+    let db = req.db;
+    try {
+        let products = yield productModel.getUnsetProducts(db);
         res.send({ ok: true, data: products });
     }
     catch (error) {

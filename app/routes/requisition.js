@@ -80,6 +80,22 @@ router.get('/orders/setReqsProductDetail/:id', co((req, res, next) => __awaiter(
         db.destroy();
     }
 })));
+router.delete('/remove', (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+    let db = req.db;
+    try {
+        let requisitionId = req.query.requisitionId;
+        let data = {};
+        data.is_cancel = 'Y';
+        yield requisitionModel.removeRequisition(db, requisitionId, data);
+        res.send({ ok: true });
+    }
+    catch (error) {
+        res.send({ ok: false, error: error.message });
+    }
+    finally {
+        db.destroy();
+    }
+}));
 router.put('/orders/approveRequisitionOrder/:id', co((req, res, next) => __awaiter(this, void 0, void 0, function* () {
     let db = req.db;
     let order = {};

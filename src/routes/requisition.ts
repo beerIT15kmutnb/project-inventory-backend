@@ -110,6 +110,25 @@ router.get('/orders/setReqsProductDetail/:id', co(async (req, res, next) => {
     db.destroy();
   }
 }))
+
+router.delete('/remove', async (req, res, next) => {
+
+  let db = req.db;
+  
+  try {
+    let requisitionId: any = req.query.requisitionId;
+    let data: any = {};
+    data.is_cancel = 'Y';
+    await requisitionModel.removeRequisition(db, requisitionId, data);
+
+    res.send({ ok: true });
+  } catch (error) {
+    res.send({ ok: false, error: error.message });
+  } finally {
+    db.destroy();
+  }
+
+});
 router.put('/orders/approveRequisitionOrder/:id', co(async (req, res, next) => {
   let db = req.db;
   let order: any ={};
@@ -519,43 +538,6 @@ router.put('/orders/updateRequisitionOrder/:requisitionId', co(async (req, res, 
 
 // });
 
-// router.delete('/orders/:requisitionId', async (req, res, next) => {
-
-//   let db = req.db;
-//   let requisitionId: any = req.params.requisitionId;
-
-//   try {
-//     // get req detail
-//     let rs: any = await orderModel.getOrderDetail(db, requisitionId);
-//     if (rs.length) {
-//       if (moment(rs[0].requisition_date).isValid()) {
-//         let year = moment(rs[0].requisition_date, 'YYYY-MM-DD').get('year');
-//         let month = moment(rs[0].requisition_date, 'YYYY-MM-DD').get('month') + 1;
-
-//         let isClose = await periodModel.isPeriodClose(db, year, month);
-
-//         if (isClose) {
-//           res.send({ ok: false, error: 'บัญชีถูกปิดแล้ว' });
-//         } else {
-//           await orderModel.removeOrder(db, requisitionId);
-//           res.send({ ok: true });
-//         }
-//       } else {
-//         await orderModel.removeOrder(db, requisitionId);
-//         res.send({ ok: true });
-//       }
-
-//     } else {
-//       res.send({ ok: false, error: 'ไม่พบรายการที่ต้องการลบ' })
-//     }
-
-//   } catch (error) {
-//     res.send({ ok: false, error: error.message });
-//   } finally {
-//     db.destroy();
-//   }
-
-// });
 
 // router.get('/orders/unpaid', async (req, res, next) => {
 

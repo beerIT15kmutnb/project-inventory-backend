@@ -22,11 +22,11 @@ export class RequisitionModel {
       sql += ` and (ro.requisition_code like '${_query}' or 
       w1.warehouse_name like '${_query}')`;
     }
-    if (fillterCancel === 'nCancel') {
-      sql += ` and ro.is_cancel = 'N' `;
-    } else if (fillterCancel === 'cancel') {
-      sql += ` and ro.is_cancel = 'Y' `;
-    }
+    // if (fillterCancel === 'nCancel') {
+    //   sql += ` and ro.is_cancel = 'N' `;
+    // } else if (fillterCancel === 'cancel') {
+    //   sql += ` and ro.is_cancel = 'Y' `;
+    // }
 
     sql += `  order by ro.requisition_code DESC
       limit ? offset ?`;
@@ -53,11 +53,11 @@ export class RequisitionModel {
       sql += ` and (ro.requisition_code like '${_query}' or 
       w1.warehouse_name like '${_query}')`;
     }
-    if (fillterCancel === 'nCancel') {
-      sql += ` and ro.is_cancel = 'N' `;
-    } else if (fillterCancel === 'cancel') {
-      sql += ` and ro.is_cancel = 'Y' `;
-    }
+    // if (fillterCancel === 'nCancel') {
+    //   sql += ` and ro.is_cancel = 'N' `;
+    // } else if (fillterCancel === 'cancel') {
+    //   sql += ` and ro.is_cancel = 'Y' `;
+    // }
     if (srcWarehouseId) {
       sql += `  order by ro.requisition_code DESC
       limit ? offset ?`;
@@ -136,6 +136,13 @@ export class RequisitionModel {
       .select('*')
       .where('requisition_order_id', id)
   }
+  removeRequisition(knex: Knex, requisitionId: any, data: any) {
+    return knex('wm_requisition_orders')
+      .where('requisition_order_id', requisitionId)
+      .update(data)
+    // .del();
+  }
+
   setReqsProductDetail(knex: Knex, id: any) {
     let sql = `SELECT
     ipd.*,

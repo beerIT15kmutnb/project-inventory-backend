@@ -410,8 +410,7 @@ WHERE
         return knex('wm_receives')
             .where('receive_id', receiveId)
             .update({
-            is_cancel: 'Y',
-            cancel_people_user_id: peopleUserId
+            is_cancel: 'Y'
         });
     }
     removeReceiveDetail(knex, receiveId) {
@@ -973,7 +972,7 @@ WHERE
         }
         return knex.raw(sql);
     }
-    getReceiveStatus(knex, limit, offset) {
+    getReceiveStatus(knex, limit, offset, status) {
         let sql = `
     SELECT
     r.*,
@@ -988,7 +987,8 @@ WHERE
   FROM
     wm_receives AS r
   WHERE
-    r.receive_id IN (
+  r.is_approve like '%${status}%'
+  and r.receive_id IN (
       SELECT
         rd.receive_id
       FROM
@@ -999,14 +999,15 @@ WHERE
   limit ${limit} offset ${offset}`;
         return knex.raw(sql);
     }
-    getReceiveStatusTotal(knex) {
+    getReceiveStatusTotal(knex, status) {
         let sql = `
     SELECT
     count(*) AS total
     FROM
     wm_receives AS r
   WHERE
-    r.receive_id IN (
+  r.is_approve like '%${status}%'
+  and r.receive_id IN (
       SELECT
         rd.receive_id
       FROM

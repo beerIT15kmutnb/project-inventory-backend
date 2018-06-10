@@ -207,12 +207,34 @@ WHERE
       .where('is_active', 'Y')
       .andWhere(knex.raw(`product_name like '%${query}%' `));
   }
+  getSerial(knex:Knex){
+    return knex('wm_additions')
+      .count('addition_id as total')
+  }
+  saveOrder(knex:Knex,order:any){
+    return knex('wm_additions')
+    .insert(order)
+  }
+  saveItems(knex:Knex,order:any){
+    return knex('wm_addition_details')
+    .insert(order)
+  }
   ///////////////////////////////////////
-
+  getAdditionList(knex:Knex,limit: number, offset: number){
+    return knex('wm_additions')
+  }
+  setAddDetail(knex:Knex,additionId:any){
+    return knex('wm_addition_details as ad')
+    .select('ad.*','mg.generic_name','u.unit_name as small_unit_name')
+    .leftJoin('mm_generics as mg','mg.generic_id','ad.generic_id')
+    .leftJoin('mm_units as u','u.unit_id','mg.small_unit_id')
+    .where('ad.addition_id',additionId)
+  }
   gettransectionList(knex: Knex, limit: number, offset: number) {
     let sql = `
     select * from(
     SELECT
+    mg.generic_id,
         mg.generic_code,
         mg.generic_name,
         mp.product_code,
@@ -244,6 +266,11 @@ WHERE
   //   return knex('mm_generic_types')
   //   .orderBy('generic_type_name','asc')
   // }
+  alertExpired(knex: Knex, numDays: any, unitId: any) {
+    return knex('mm_generics')
+      .update(numDays)
+      .whereIn('generic_id', unitId)
+  }
   addUnit(knex: Knex, items: any) {
     return knex('mm_units')
       .insert(items)
@@ -253,6 +280,16 @@ WHERE
     return knex('mm_units')
       .update(items)
       .where('unit_id', unitId)
+  } 
+  isActiveProduct(knex: Knex, items: any, Id: any) {
+    return knex('mm_products')
+      .update(items)
+      .where('product_id', Id)
+  }
+  isActiveGeneric(knex: Knex, items: any, Id: any) {
+    return knex('mm_generics')
+      .update(items)
+      .where('generic_id', Id)
   }
   isactive(knex: Knex, items: any, unitId: any) {
     return knex('mm_units')
@@ -295,6 +332,11 @@ WHERE
   }
   productsExpired(knex: Knex) {
     return knex('mm_generics')
+  }
+  getUnsetProducts(knex: Knex) {
+    return knex('mm_generics')
+    .where('num_days',null)
+    .orWhere('num_days',0)
   }
   expired(knex: Knex) {
     let sql = `
@@ -353,8 +395,7 @@ FROM
     LEFT JOIN mm_units AS uL ON uL.unit_id = mp.large_unit_id
     LEFT JOIN mm_units AS uS ON uS.unit_id = mg.small_unit_id
     WHERE
-        mp.is_active = 'Y' 
-        and 
+        
         mp.product_name like '%${query}%'
     GROUP BY
         mp.product_id 
@@ -378,8 +419,7 @@ FROM
     left join mm_units as mu on mu.unit_id = mg.small_unit_id
     left join mm_generic_types as gt on gt.generic_type_id = mg .generic_type_id
     WHERE
-        mg.is_active = 'Y' 
-        and 
+         
         mg.generic_name like '%${query}%'
     GROUP BY
         mg.generic_id 

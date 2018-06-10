@@ -617,12 +617,12 @@ WHERE
     let queries = sqls.join(';');
     return knex.raw(queries);
   }
+  // use
   removeReceive(knex: Knex, receiveId: string, peopleUserId: any) {
     return knex('wm_receives')
       .where('receive_id', receiveId)
       .update({
-        is_cancel: 'Y',
-        cancel_people_user_id: peopleUserId
+        is_cancel: 'Y'
       });
   }
 // use
@@ -1260,7 +1260,7 @@ WHERE
     return knex.raw(sql);
   }
   // ใช้
-  getReceiveStatus(knex: Knex, limit: number, offset: number) {
+  getReceiveStatus(knex: Knex, limit: number, offset: number,status:any) {
     let sql = `
     SELECT
     r.*,
@@ -1275,7 +1275,8 @@ WHERE
   FROM
     wm_receives AS r
   WHERE
-    r.receive_id IN (
+  r.is_approve like '%${status}%'
+  and r.receive_id IN (
       SELECT
         rd.receive_id
       FROM
@@ -1287,14 +1288,15 @@ WHERE
     return knex.raw(sql);
   }
   // ใช้
-  getReceiveStatusTotal(knex: Knex) {
+  getReceiveStatusTotal(knex: Knex ,status:any) {
     let sql = `
     SELECT
     count(*) AS total
     FROM
     wm_receives AS r
   WHERE
-    r.receive_id IN (
+  r.is_approve like '%${status}%'
+  and r.receive_id IN (
       SELECT
         rd.receive_id
       FROM

@@ -207,6 +207,22 @@ router.post('/approveIssue', co((req, res, next) => __awaiter(this, void 0, void
         db.destroy();
     }
 })));
+router.delete('/remove', co((req, res, next) => __awaiter(this, void 0, void 0, function* () {
+    let db = req.db;
+    let issueId = req.query.issues;
+    try {
+        let data = {};
+        data.is_cancel = 'Y';
+        yield issueModel.removeIssueSummary(db, issueId, data);
+        res.send({ ok: true });
+    }
+    catch (error) {
+        res.send({ ok: false, error: error.message });
+    }
+    finally {
+        db.destroy();
+    }
+})));
 router.get('/listDetail', co((req, res, next) => __awaiter(this, void 0, void 0, function* () {
     let db = req.db;
     let id = req.query.id;

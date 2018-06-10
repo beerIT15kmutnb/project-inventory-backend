@@ -54,7 +54,7 @@ export class IssueModel {
   }
 
   removeIssueSummary(knex: Knex, issueId: any, data: any) {
-    return knex('wm_issue_summary')
+    return knex('wm_issues')
       .where('issue_id', issueId)
       .update(data)
     // .del();
