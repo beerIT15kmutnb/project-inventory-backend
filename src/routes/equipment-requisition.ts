@@ -10,13 +10,13 @@ import * as _ from 'lodash';
 import { unitOfTime } from 'moment';
 import { ReceiveModel } from '../models/receive';
 
-import { RequisitionModel } from '../models/requisition';
+import { EquipmentRequisitionModel } from '../models/equipment-requisition';
 import { SerialModel } from '../models/serial';
-import { IssueModel } from '../models/issue';
+import { EquipmentIssueModel } from '../models/equipment-issue';
 
 const router = express.Router();
-const issueModel = new IssueModel();
-const requisitionModel = new RequisitionModel();
+const issueModel = new EquipmentIssueModel();
+const requisitionModel = new EquipmentRequisitionModel();
 const serialModel = new SerialModel();
 router.get('/orders/waiting', co(async (req, res, next) => {
 

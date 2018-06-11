@@ -64,60 +64,6 @@ class IssueModel {
         return knex('wm_issue_summary')
             .where('issue_id', issueId);
     }
-    getProductDetail(knex, issueId) {
-        let sql = `
-    SELECT
-      sg.generic_id,
-      sp.product_id,
-      sp.wm_product_id,
-      sp.qty AS product_qty,
-      mp.product_name,
-      mug.qty AS product_conversion,
-      wp.qty AS product_remain_qty,
-      mu.unit_name AS from_unit_name,
-      mu2.unit_name AS to_unit_name
-    FROM
-      wm_issue_generics sg
-    JOIN wm_issue_summary ss ON ss.issue_id = sg.issue_id
-    JOIN wm_issue_products sp ON sg.issue_generic_id = sp.issue_generic_id
-    JOIN wm_products wp ON wp.wm_product_id = sp.wm_product_id
-    JOIN mm_unit_generics mug ON mug.unit_generic_id = wp.unit_generic_id
-    JOIN mm_products mp ON mp.product_id = sp.product_id
-    JOIN mm_units mu ON mug.from_unit_id = mu.unit_id
-    JOIN mm_units mu2 ON mug.to_unit_id = mu2.unit_id
-    WHERE
-    sg.issue_id = '${issueId}'`;
-        return knex.raw(sql);
-    }
-    getGenericsDetail(knex, issueId) {
-        let sql = `SELECT
-    mg.working_code,
-    sg.generic_id,
-    sg.qty / mug.qty AS generic_qty,
-    mug.qty AS generic_conversion,
-    sg.unit_generic_id,
-    mg.generic_name,
-  	(
-      SELECT
-        sum(wm.qty) AS qty
-      FROM
-        wm_products wm
-      JOIN mm_products mp2 ON wm.product_id = mp2.product_id
-      WHERE
-        mp2.generic_id = sg.generic_id
-      AND wm.warehouse_id = ss.warehouse_id
-      GROUP BY
-        mp2.generic_id
-    ) AS generic_remain_qty
-    FROM
-      wm_issue_generics sg
-    JOIN wm_issue_summary ss ON ss.issue_id = sg.issue_id
-    JOIN mm_unit_generics mug ON mug.unit_generic_id = sg.unit_generic_id
-    JOIN mm_generics mg ON sg.generic_id = mg.generic_id
-    WHERE
-    sg.issue_id = '${issueId}'`;
-        return knex.raw(sql);
-    }
     getSerial(knex) {
         return knex('wm_issues')
             .count('* as total');
@@ -293,23 +239,6 @@ class IssueModel {
     _getIssues(knex, id) {
         return knex('wm_issue_summary as wis');
     }
-    getIssues(knex, id) {
-        let sql = `SELECT
-    wis.issue_code,
-    wis.issue_date,
-    wid.lot_no,
-    mp.product_id,
-    mp.product_name,
-    wis.warehouse_id
-    FROM
-    wm_issue_summary wis
-    LEFT JOIN wm_issue_detail wid ON wis.issue_id = wid.issue_id
-    LEFT JOIN mm_products mp ON mp.product_id = wid.product_id
-    LEFT JOIN mm_unit_generics mug ON mug.unit_generic_id = wid.unit_generic_id
-    LEFT JOIN mm_units mu ON mu.unit_id = mug.to_unit_id
-    WHERE wis.issue_id = ?`;
-        return knex.raw(sql, [id]);
-    }
     getIssueApprove(knex, id, warehouseId) {
         let sql = `SELECT
     sp.product_id,
@@ -332,85 +261,6 @@ class IssueModel {
     ss.issue_id = ${id} 
     AND sp.qty != 0`;
         return knex.raw(sql);
-    }
-    getProductIssues(knex, id) {
-        let sql = `SELECT
-    wid.qty,
-    mp.product_id,
-    mg.generic_id,
-    mp.product_name,
-    wp.qty as remain_qty,
-    wid.conversion_qty,
-    mg.primary_unit_id,
-    mu.unit_name,
-    wid.lot_no,
-    wid.expired_date,
-    mug.unit_generic_id,
-    wid.warehouse_id
-    FROM
-    wm_issue_summary wis
-    LEFT JOIN wm_issue_detail wid ON wis.issue_id = wid.issue_id
-    LEFT JOIN mm_products mp ON mp.product_id = wid.product_id
-    LEFT JOIN wm_products wp ON wp.product_id = wid.product_id
-		LEFT JOIN mm_generics mg ON mg.generic_id = mp.generic_id
-    LEFT JOIN mm_unit_generics mug ON mug.unit_generic_id = wid.unit_generic_id
-    LEFT JOIN mm_units mu ON mu.unit_id = mg.primary_unit_id
-    WHERE wis.issue_id = ?
-    GROUP BY mg.generic_id`;
-        return knex.raw(sql, [id]);
-    }
-    getProductList(knex, issueId) {
-        let sql = `
-      SELECT
-      sd.*, w.warehouse_name,
-      g.generic_name,
-      mp.product_name,
-      uf.unit_name AS from_unit_name,
-      ut.unit_name AS to_unit_name,
-      ug.qty AS conversion_qty
-      FROM
-      wm_issue_summary as s
-      join wm_issue_generics AS sd on s.issue_id = sd.issue_id
-      JOIN wm_issue_products sp on sd.issue_generic_id = sp.issue_generic_id
-      LEFT JOIN wm_products AS wp ON wp.wm_product_id = sp.wm_product_id
-      LEFT JOIN wm_warehouses AS w ON w.warehouse_id = s.warehouse_id
-      LEFT JOIN mm_products AS mp ON mp.product_id = wp.product_id
-      LEFT JOIN mm_generics AS g ON g.generic_id = mp.generic_id
-      LEFT JOIN mm_unit_generics AS ug ON ug.unit_generic_id = sd.unit_generic_id
-      LEFT JOIN mm_units AS uf ON uf.unit_id = ug.from_unit_id
-      LEFT JOIN mm_units AS ut ON ut.unit_id = ug.to_unit_id
-      WHERE
-      sd.issue_id =?`;
-        return knex.raw(sql, [issueId]);
-    }
-    getGenericList(knex, issueId) {
-        let sql = `
-    SELECT
-	sd.*, w.warehouse_name,
-	g.generic_name,
-	uf.unit_name AS from_unit_name,
-	ut.unit_name AS to_unit_name,
-  ug.qty AS conversion_qty,
-  (
-		SELECT
-			sum(sp.qty)
-		FROM
-			wm_issue_products sp
-		join wm_issue_generics sg on sg.issue_generic_id = sp.issue_generic_id
-		WHERE
-			sp.issue_generic_id = sd.issue_generic_id and sg.generic_id = sd.generic_id
-	) AS qty_real
-FROM
-wm_issue_summary as ss join wm_issue_generics AS sd on ss.issue_id = sd.issue_id
-LEFT JOIN wm_warehouses AS w ON w.warehouse_id = ss.warehouse_id
-LEFT JOIN mm_generics AS g ON g.generic_id = sd.generic_id
-LEFT JOIN mm_unit_generics AS ug ON ug.unit_generic_id = sd.unit_generic_id
-LEFT JOIN mm_units AS uf ON uf.unit_id = ug.from_unit_id
-LEFT JOIN mm_units AS ut ON ut.unit_id = ug.to_unit_id
-WHERE
-	sd.issue_id = ?
-    `;
-        return knex.raw(sql, [issueId]);
     }
     saveProductStock(knex, data) {
         let sqls = [];

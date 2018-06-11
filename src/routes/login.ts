@@ -28,13 +28,8 @@ router.post('/', wrap(async (req, res, next) => {
   let db = req.db;
 
   if (username && password) {
-    // get user detail
     try {
       let encPassword = crypto.createHash('md5').update(password).digest('hex');
-      // let sysSetting = await loginModel.sysSettings(db);
-      // const settings = await loginModel.getSystemSetting(db);
-      // const expired: any = _.filter(settings, { 'action_name': 'WM_EXPIRED_YEAR_FORMAT' });
-
       let user: any = await loginModel.doLogin(db, username, encPassword);
       if (user.length) {
         console.log(user[0]);
@@ -49,31 +44,9 @@ router.post('/', wrap(async (req, res, next) => {
           warehouseName: user[0].warehouse_name
         };
 
-        // settings.forEach(v => {
-        //   payload[v.action_name] = v.action_value;
-        // });
-        
         const token = jwt.sign(payload);
-        // let logData = {
-        //   user_id: user[0].user_id,
-        //   system: 'UM',
-        //   action: 'LOGIN',
-        //   people_user_id: user[0].people_user_id,
-        //   remark: `${username} -> Success`,
-        //   action_time: moment().format('x')
-        // }
-        // save log data
-        // await logModel.saveLog(db, logData);
         res.send({ ok: true, token: token });
       } else {
-        // let logData = {
-        //   system: 'UM',
-        //   action: 'LOGIN',
-        //   remark: `${username} -> Incorrect username or password`,
-        //   action_time: moment().format('x')
-        // }
-        // save log data
-        // await logModel.saveLog(db, logData);
         res.send({ ok: false, error: 'ชื่อผู้ใช้งาน/รหัสผ่านไม่ถูกต้อง' });
       }
     } catch (error) {

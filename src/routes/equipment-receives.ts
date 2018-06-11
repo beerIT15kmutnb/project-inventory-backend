@@ -16,15 +16,15 @@ import * as gulpPug from 'gulp-pug';
 import * as json2xls from 'json2xls';
 import * as numeral from 'numeral';
 
-import { ReceiveModel } from '../models/receive';
-import { ProductModel } from "../models/products";
+import { EquipmentReceiveModel } from '../models/equipment-receive';
+import { EquipmentProductModel } from "../models/equipment-products";
 
 import { SerialModel } from '../models/serial';
 
 const router = express.Router();
 
-const receiveModel = new ReceiveModel();
-const productModel = new ProductModel();
+const receiveModel = new EquipmentReceiveModel();
+const productModel = new EquipmentProductModel();
 const serialModel = new SerialModel();
 
 

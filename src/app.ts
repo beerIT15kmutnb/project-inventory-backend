@@ -26,6 +26,12 @@ import issue from './routes/issue';
 import requisition from './routes/requisition';
 import generic from './routes/generics';
 import people from './routes/people'
+
+import equipmentProduct from './routes/equipment-products';
+import equipmentReceives from './routes/equipment-receives';
+import equipmentIssue from './routes/equipment-issue';
+import equipmentRequisition from './routes/equipment-requisition';
+import equipment from './routes/equipments';
 const app: express.Express = express();
 
 //view engine setup
@@ -95,6 +101,13 @@ app.use((req, res, next) => {
 });
 
 app.use('/login', login)
+
+app.use('/equipment-products', checkAuth, equipmentProduct);
+app.use('/equipment-requisition', checkAuth, equipmentRequisition);
+app.use('/equipment-receives', checkAuth, equipmentReceives);
+app.use('/equipment-issues', checkAuth, equipmentIssue)
+app.use('/equipments', checkAuth, equipment )
+
 app.use('/products', checkAuth, product);
 app.use('/requisition', checkAuth, requisition);
 app.use('/receives', checkAuth, receives);

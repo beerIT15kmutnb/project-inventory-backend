@@ -254,20 +254,6 @@ router.get('/', co((req, res, next) => __awaiter(this, void 0, void 0, function*
         db.destroy();
     }
 })));
-router.get('/info/products', co((req, res, next) => __awaiter(this, void 0, void 0, function* () {
-    let db = req.db;
-    let issueId = req.query.issueId;
-    try {
-        let rs = yield issueModel.getProductDetail(db, issueId);
-        res.send({ ok: true, rows: rs[0] });
-    }
-    catch (error) {
-        res.send({ ok: false, error: error.message });
-    }
-    finally {
-        db.destroy();
-    }
-})));
 router.post('/addType', co((req, res, next) => __awaiter(this, void 0, void 0, function* () {
     let db = req.db;
     try {

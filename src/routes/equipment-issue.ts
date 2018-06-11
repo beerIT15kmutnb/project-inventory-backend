@@ -5,14 +5,14 @@ import * as moment from 'moment';
 import * as co from 'co-express';
 import * as _ from 'lodash';
 
-import { IssueModel } from '../models/issue';
-import { ProductModel } from '../models/products';
+import { EquipmentIssueModel } from '../models/equipment-issue';
+import { EquipmentProductModel } from '../models/equipment-products';
 import { SerialModel } from '../models/serial';
 
 const router = express.Router();
 
-const issueModel = new IssueModel();
-const productModel = new ProductModel();
+const issueModel = new EquipmentIssueModel();
+const productModel = new EquipmentProductModel();
 router.get('/gettransectionIssues', co(async (req, res, next) => {
   let db = req.db;
   try {
@@ -164,7 +164,7 @@ router.put('/update/:issueId', co(async (req, res, next) => {
 router.post('/approveIssue', co(async (req, res, next) => {
 
   let db = req.db;
-  let issueIds = req.body.issueId;
+  let issueIds = req.body.issueIds;
   try {
     const decoded = req.decoded;
     const warehouseId = decoded.warehouseId;
