@@ -23,6 +23,7 @@ const equipment_receives_1 = require("./routes/equipment-receives");
 const equipment_issue_1 = require("./routes/equipment-issue");
 const equipment_requisition_1 = require("./routes/equipment-requisition");
 const equipments_1 = require("./routes/equipments");
+const dashboard_1 = require("./routes/dashboard");
 const app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
@@ -83,6 +84,8 @@ app.use((req, res, next) => {
     next();
 });
 app.use('/login', login_1.default);
+app.use('/', checkAuth, index_1.default);
+app.use('/dashboard', checkAuth, dashboard_1.default);
 app.use('/equipment-products', checkAuth, equipment_products_1.default);
 app.use('/equipment-requisition', checkAuth, equipment_requisition_1.default);
 app.use('/equipment-receives', checkAuth, equipment_receives_1.default);
@@ -94,7 +97,6 @@ app.use('/receives', checkAuth, receives_1.default);
 app.use('/issues', checkAuth, issue_1.default);
 app.use('/generics', checkAuth, generics_1.default);
 app.use('/people', checkAuth, people_1.default);
-app.use('/', checkAuth, index_1.default);
 app.use((req, res, next) => {
     var err = new Error('Not Found');
     err['status'] = 404;

@@ -32,6 +32,7 @@ import equipmentReceives from './routes/equipment-receives';
 import equipmentIssue from './routes/equipment-issue';
 import equipmentRequisition from './routes/equipment-requisition';
 import equipment from './routes/equipments';
+import dashboard from './routes/dashboard';
 const app: express.Express = express();
 
 //view engine setup
@@ -101,6 +102,8 @@ app.use((req, res, next) => {
 });
 
 app.use('/login', login)
+app.use('/', checkAuth, index);
+app.use('/dashboard',checkAuth, dashboard)
 
 app.use('/equipment-products', checkAuth, equipmentProduct);
 app.use('/equipment-requisition', checkAuth, equipmentRequisition);
@@ -114,7 +117,7 @@ app.use('/receives', checkAuth, receives);
 app.use('/issues', checkAuth, issue)
 app.use('/generics', checkAuth, generic )
 app.use('/people',checkAuth,people)
-app.use('/', checkAuth, index);
+
 
 
 //catch 404 and forward to error handler
