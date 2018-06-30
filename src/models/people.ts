@@ -7,6 +7,9 @@ export class PeopleModel {
             .leftJoin('um_titles as ut', 'ut.title_id', 'up.title_id')
 
     }
+    getTitles(knex: Knex) {
+        return knex('um_titles as up')
+    }
     getPeopleTotal(knex: Knex) {
         return knex('um_people')
             .count('* as total')
@@ -22,6 +25,15 @@ export class PeopleModel {
     getUserTotal(knex: Knex) {
         return knex('um_users')
             .count('* as total')
+    }
+    savePeople(knex: Knex, items: any) {
+        knex('um_people')
+          .insert(items)
+    }
+    editPeople(knex: Knex, items: any, id: any) {
+        knex('um_people')
+      .update(items)
+      .whereIn('people_id', id)
     }
 
 }

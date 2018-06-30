@@ -6,6 +6,9 @@ class PeopleModel {
             .select('up.*', 'ut.title_name')
             .leftJoin('um_titles as ut', 'ut.title_id', 'up.title_id');
     }
+    getTitles(knex) {
+        return knex('um_titles as up');
+    }
     getPeopleTotal(knex) {
         return knex('um_people')
             .count('* as total');
@@ -20,6 +23,15 @@ class PeopleModel {
     getUserTotal(knex) {
         return knex('um_users')
             .count('* as total');
+    }
+    savePeople(knex, items) {
+        knex('um_people')
+            .insert(items);
+    }
+    editPeople(knex, items, id) {
+        knex('um_people')
+            .update(items)
+            .whereIn('people_id', id);
     }
 }
 exports.PeopleModel = PeopleModel;

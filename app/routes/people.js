@@ -44,5 +44,60 @@ router.get('/getPeople', wrap((req, res, next) => __awaiter(this, void 0, void 0
         db.destroy();
     }
 })));
+router.get('/getTitles', wrap((req, res, next) => __awaiter(this, void 0, void 0, function* () {
+    let db = req.db;
+    try {
+        let rs = yield peopleModel.getTitles(db);
+        res.send({ ok: true, rows: rs });
+    }
+    catch (error) {
+        res.send({ ok: false, error: error.message });
+    }
+    finally {
+        db.destroy();
+    }
+})));
+router.put('/savePeople', wrap((req, res, next) => __awaiter(this, void 0, void 0, function* () {
+    let db = req.db;
+    let items = req.body.items;
+    console.log(req.body);
+    try {
+        let item = {
+            title_id: items.title_id,
+            fname: items.fname,
+            is_active: items.is_active,
+            lname: items.lname,
+        };
+        let rs = yield peopleModel.savePeople(db, item);
+        res.send({ ok: true, rows: rs });
+    }
+    catch (error) {
+        res.send({ ok: false, error: error.message });
+    }
+    finally {
+        db.destroy();
+    }
+})));
+router.post('/editPeople', wrap((req, res, next) => __awaiter(this, void 0, void 0, function* () {
+    let db = req.db;
+    let items = req.body.items;
+    try {
+        let item = {
+            title_id: items.title_id,
+            fname: items.fname,
+            is_active: items.is_active,
+            lname: items.lname,
+        };
+        let id = items.people_id;
+        let rs = yield peopleModel.editPeople(db, item, id);
+        res.send({ ok: true, rows: rs });
+    }
+    catch (error) {
+        res.send({ ok: false, error: error.message });
+    }
+    finally {
+        db.destroy();
+    }
+})));
 exports.default = router;
 //# sourceMappingURL=people.js.map
