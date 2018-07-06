@@ -225,8 +225,9 @@ WHERE
   }
   setAddDetail(knex:Knex,additionId:any){
     return knex('wm_equipment_addition_details as ad')
-    .select('ad.*','mg.equipment_name','u.unit_name as small_unit_name')
-    .leftJoin('mm_equipments as mg','mg.equipment_id','ad.equipment_id')
+    .select('ad.*','mp.product_name','u.unit_name as small_unit_name')
+    .leftJoin('mm_equipment_products as mp','mp.product_id','ad.product_id')
+    .leftJoin('mm_equipments as mg','mg.equipment_id','mp.equipment_id')
     .leftJoin('mm_equipment_units as u','u.unit_id','mg.small_unit_id')
     .where('ad.addition_id',additionId)
   }
@@ -238,9 +239,10 @@ WHERE
         mg.equipment_code,
         mg.equipment_name,
         mp.product_code,
+        mp.product_id,
         mp.product_name,
-        mg.min_qty,
-        mg.max_qty,
+        mp.min_qty,
+        mp.max_qty,
         ifnull(sum(p.qty * mp.small_qty),0) as qty,
         uS.unit_name
     FROM
@@ -252,9 +254,9 @@ WHERE
     WHERE
         mp.is_active = 'Y'
     GROUP BY
-        mg.equipment_id 
+    mp.product_id 
     ORDER BY
-        mg.equipment_name ASC 
+    mp.product_name ASC 
         LIMIT ${limit}
         offset ${offset} ) as q1
         where q1.qty < q1.min_qty
@@ -360,12 +362,12 @@ WHERE
   }
   saveEditEquipment(knex: Knex, equipment_id: any, items: any) {
     return knex('mm_equipments')
-      .whereIn('equipment_id', equipment_id)
+      .where('equipment_id', equipment_id)
       .update(items)
   }
   saveEditProduct(knex: Knex, product_id: any, items: any) {
     return knex('mm_equipment_products')
-      .whereIn('product_id', product_id)
+      .where('product_id', product_id)
       .update(items)
   }
   adminGetSearchGnericTotal(knex: Knex, query: any) {
@@ -465,8 +467,8 @@ FROM
           g.equipment_name,
           mp.product_code,
           mp.product_name,
-          g.min_qty,
-          g.max_qty,
+          mp.min_qty,
+          mp.max_qty,
           sum( p.qty ) AS qty,
           uL.unit_name 
       FROM
@@ -494,8 +496,8 @@ FROM
 	g.equipment_name,
 	mp.product_code,
 	mp.product_name,
-	g.min_qty,
-  g.max_qty,
+	mp.min_qty,
+  mp.max_qty,
   ifnull(sum(p.qty),0) as qty,
 	uL.unit_name 
 FROM
@@ -665,6 +667,8 @@ ORDER BY
 	LIMIT 10) as a) as s`;
     return knex.raw(sql);
   }
+
+  
   adminSearchEquipments(knex: Knex, query: any) {
     let q_ = `${query}%`;
     let _q_ = `%${query}%`;
@@ -727,7 +731,111 @@ ORDER BY
 	LIMIT 10) as a) as s`;
     return knex.raw(sql);
   }
-
+  adminSearchEquipments2(knex: Knex, query: any) {
+    let q_ = `${query}%`;
+    let _q_ = `%${query}%`;
+    let sql = `
+        select DISTINCT * from (
+       ( SELECT
+	mg.*
+FROM
+  mm_equipments AS mg
+   
+WHERE
+	( mg.equipment_name LIKE '${query}' ) 
+  AND mg.is_active = 'Y' 
+  and mg.equipment_id in (
+    select mp.equipment_id from 
+    mm_equipment_products as mp
+    left join wm_equipment_products as wp on wp.product_id = mp.product_id
+    where wp.qty > 0
+    group by  mp.equipment_id
+  )
+	LIMIT 10 )
+        UNION ALL
+        SELECT * from (
+        SELECT
+	mg.*
+FROM
+	mm_equipments AS mg 
+WHERE
+	( mg.equipment_name LIKE '${q_}' ) 
+  AND mg.is_active = 'Y' 
+  and mg.equipment_id in (
+    select mp.equipment_id from 
+    mm_equipment_products as mp
+    left join wm_equipment_products as wp on wp.product_id = mp.product_id
+    where wp.qty > 0
+    group by  mp.equipment_id
+  )
+ORDER BY
+mg.equipment_name ASC 
+	LIMIT 10) as a
+        UNION ALL
+        
+        SELECT * from (
+        SELECT
+	mg.*
+FROM
+  mm_equipments AS mg
+  WHERE
+	( mg.equipment_name LIKE '${_q_}' ) 
+  AND mg.is_active = 'Y' 
+  and mg.equipment_id in (
+    select mp.equipment_id from 
+    mm_equipment_products as mp
+    left join wm_equipment_products as wp on wp.product_id = mp.product_id
+    where wp.qty > 0
+    group by  mp.equipment_id
+  )
+ORDER BY
+	mg.equipment_name ASC 
+	LIMIT 10) as a) as s`;
+    return knex.raw(sql);
+  }
+  adminSearchAllEquipments2(knex: Knex, query: any) {
+    let q_ = `${query}%`;
+    let _q_ = `%${query}%`;
+    let sql = `
+        select DISTINCT * from (
+       ( SELECT
+        mg.product_id,mg.product_name,me.*
+FROM
+  mm_equipment_products AS mg 
+  left join mm_equipments as me on me.equipment_id = mg.equipment_id
+WHERE
+	( mg.product_name LIKE '${query}' ) 
+	AND mg.is_active = 'Y' 
+	LIMIT 10 )
+        UNION ALL
+        SELECT * from (
+        SELECT
+        mg.product_id,mg.product_name,me.*
+FROM
+  mm_equipment_products AS mg
+  left join mm_equipments as me on me.equipment_id = mg.equipment_id
+WHERE
+	( mg.product_name LIKE '${q_}' ) 
+	AND mg.is_active = 'Y' 
+ORDER BY
+mg.product_name ASC 
+	LIMIT 10) as a
+        UNION ALL
+        
+        SELECT * from (
+        SELECT
+        mg.product_id,mg.product_name,me.*
+FROM
+  mm_equipment_products AS mg
+  left join mm_equipments as me on me.equipment_id = mg.equipment_id
+  WHERE
+	( mg.product_name LIKE '${_q_}' ) 
+	AND mg.is_active = 'Y' 
+ORDER BY
+	mg.product_name ASC 
+	LIMIT 10) as a) as s`;
+    return knex.raw(sql);
+  }
 
   getProductRemain(knex: Knex, product_id: any) {
     let sql = `SELECT

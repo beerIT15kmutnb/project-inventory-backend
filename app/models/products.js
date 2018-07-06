@@ -346,12 +346,12 @@ WHERE
     }
     saveEditGeneric(knex, generic_id, items) {
         return knex('mm_generics')
-            .whereIn('generic_id', generic_id)
+            .where('generic_id', generic_id)
             .update(items);
     }
     saveEditProduct(knex, product_id, items) {
         return knex('mm_products')
-            .whereIn('product_id', product_id)
+            .where('product_id', product_id)
             .update(items);
     }
     adminGetSearchGnericTotal(knex, query) {

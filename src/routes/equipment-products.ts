@@ -195,7 +195,7 @@ router.post('/saveAdditionOrder', wrap(async (req, res, next) => {
     items.forEach((v: any) => {
       let obj: any = {
         addition_id: requisitionId,
-        equipment_id: v.equipment_id,
+        product_id: v.product_id,
         requisition_qty: v.requisition_qty
       }
       item.push(obj);
@@ -398,7 +398,9 @@ router.put('/saveAddProduct', wrap(async (req, res, next) => {
     large_unit_id: items.large_unit_id,
     small_qty: items.small_qty,
     description: items.description,
-    user_create_id: user_id
+    user_create_id: user_id,
+    min_qty: items.min_qty,
+    max_qty: items.max_qty
   }
   try {
     let rs = await productModel.saveAddProduct(db, item);
@@ -417,8 +419,8 @@ router.put('/saveAddEquipments', wrap(async (req, res, next) => {
     equipment_name: items.equipment_name,
     // equipment_type_id: items.equipment_type_id,
     is_active: items.is_active,
-    min_qty: items.min_qty,
-    max_qty: items.max_qty,
+    // min_qty: items.min_qty,
+    // max_qty: items.max_qty,
     small_unit_id: items.small_unit_id,
     equipment_code: items.equipment_code,
     comment: items.comment,
@@ -443,8 +445,8 @@ router.put('/saveEditEquipments', wrap(async (req, res, next) => {
     // equipment_type_id: items.equipment_type_id,
     is_active: items.is_active,
     small_unit_id: items.small_unit_id,
-    min_qty: items.min_qty,
-    max_qty: items.max_qty,
+    // min_qty: items.min_qty,
+    // max_qty: items.max_qty,
     equipment_code: items.equipment_code,
     comment: items.comment
   }
@@ -468,7 +470,9 @@ router.put('/saveEditProduct', wrap(async (req, res, next) => {
     product_code: items.product_code,
     large_unit_id: items.large_unit_id,
     small_qty: items.small_qty,
-    description: items.description
+    description: items.description,
+    min_qty: items.min_qty,
+    max_qty: items.max_qty
   }
   try {
     let rs = await productModel.saveEditProduct(db, id, item);
@@ -561,7 +565,47 @@ router.get('/equipment-all-search-autocomplete', wrap(async (req, res, next) => 
   } finally {
     db.destroy();
   }
+}))
+  router.get('/equipment-search-autocomplete2', wrap(async (req, res, next) => {
 
+    let db = req.db;
+    const query = req.query.q;
+  
+    try {
+      let rs = await productModel.adminSearchEquipments2(db, query);
+  
+  
+      if (rs[0].length) {
+        res.send(rs[0]);
+      } else {
+        res.send([]);
+      }
+    } catch (error) {
+      res.send({ ok: false, error: error.message });
+    } finally {
+      db.destroy();
+    }
+  
+  }));
+  router.get('/equipment-all-search-autocomplete2', wrap(async (req, res, next) => {
+  
+    let db = req.db;
+    const query = req.query.q;
+  
+    try {
+      let rs = await productModel.adminSearchAllEquipments2(db, query);
+  
+  
+      if (rs[0].length) {
+        res.send(rs[0]);
+      } else {
+        res.send([]);
+      }
+    } catch (error) {
+      res.send({ ok: false, error: error.message });
+    } finally {
+      db.destroy();
+    }
 }));
 
 

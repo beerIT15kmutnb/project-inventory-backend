@@ -12,9 +12,10 @@ export class EquipmentModel {
             mg.equipment_code,
             mg.equipment_name,
             mp.product_code,
+            mp.product_id,
             mp.product_name,
-            mg.min_qty,
-            mg.max_qty,
+            mp.min_qty,
+            mp.max_qty,
             ifnull(sum(p.qty * mp.small_qty),0) as qty,
             uS.unit_name
         FROM
@@ -24,11 +25,11 @@ export class EquipmentModel {
             LEFT JOIN mm_equipment_units AS uL ON uL.unit_id = mp.large_unit_id
             LEFT JOIN mm_equipment_units AS uS ON uS.unit_id = mg.small_unit_id
         WHERE
-        mg.equipment_id = ${equipmentId}
+        mp.product_id = ${equipmentId}
         GROUP BY
-            mg.equipment_id 
+            mp.product_id 
         ORDER BY
-            mg.equipment_name ASC
+            mp.product_name ASC
         `;
         return knex.raw(sql);
     }

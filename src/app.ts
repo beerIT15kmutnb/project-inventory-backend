@@ -36,7 +36,7 @@ import dashboard from './routes/dashboard';
 const app: express.Express = express();
 
 //view engine setup
-app.set('views', path.join(__dirname, 'views'));
+app.set('views', path.join(__dirname, '../views'));
 app.set('view engine', 'pug');
 
 //uncomment after placing your favicon in /public
@@ -45,7 +45,7 @@ app.use(logger('dev'));
 app.use(bodyParser.json({ limit: '5mb' }));
 app.use(bodyParser.urlencoded({ extended: false, limit: '5mb' }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, '../public')));
 app.use(cors());
 
 let checkAuth = (req, res, next) => {
@@ -102,7 +102,7 @@ app.use((req, res, next) => {
 });
 
 app.use('/login', login)
-app.use('/', checkAuth, index);
+app.use('/', index);
 app.use('/dashboard',checkAuth, dashboard)
 
 app.use('/equipment-products', checkAuth, equipmentProduct);
