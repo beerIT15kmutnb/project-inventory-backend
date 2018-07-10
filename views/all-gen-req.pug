@@ -1,0 +1,55 @@
+include css.pug
+doctype html
+html
+  head
+    meta(charset="utf-8")
+    title report
+  body
+    button.btn.btn-sm.btn-success(onclick='window.print()') Print
+    table.table.head
+      tbody.head
+        tr 
+          td.head.center.bold(colspan='15') จํานวนปริมาณยาที่ใช้ของหน่วยบริการรักษาพยาบาล 
+        tr
+          td.head.center.bold(colspan='15') ตั้งแต่เดือน #{end} - #{start} ประจําปีงบประมาณ
+    table.table
+      thead.head
+        tr.head.center
+          td(rowspan='2' style="vertical-align: middle;") ลำดับที่ 
+          td(rowspan='2' style="vertical-align: middle;") รายการ
+          td(colspan='12') จํานวนบริการ(ครั้ง)
+          td(rowspan='2' style="vertical-align: middle;") รวม
+        tr
+          td.head.center #{mm[11]}
+          td.head.center #{mm[10]}
+          td.head.center #{mm[9]}
+          td.head.center #{mm[8]}
+          td.head.center #{mm[7]}
+          td.head.center #{mm[6]}
+          td.head.center #{mm[5]}
+          td.head.center #{mm[4]}
+          td.head.center #{mm[3]}
+          td.head.center #{mm[2]}
+          td.head.center #{mm[1]}
+          td.head.center #{mm[0]}
+      tbody
+        - var i=0 
+        - for(var detail of genAll)
+          tr
+            td.center #{i+1}
+            td.left #{detail.generic_name}
+            td.right #{rs[11][i].qty1}
+            td.right #{rs[10][i].qty1}
+            td.right #{rs[9][i].qty1}
+            td.right #{rs[8][i].qty1}
+            td.right #{rs[7][i].qty1}
+            td.right #{rs[6][i].qty1}
+            td.right #{rs[5][i].qty1}
+            td.right #{rs[4][i].qty1}
+            td.right #{rs[3][i].qty1}
+            td.right #{rs[2][i].qty1}
+            td.right #{rs[1][i].qty1}
+            td.right #{rs[0][i].qty1}
+            td.right #{rs[11][i].qty1 + rs[10][i].qty1 + rs[9][i].qty1 + rs[8][i].qty1 + rs[7][i].qty1 + rs[6][i].qty1 + rs[5][i].qty1+rs[4][i].qty1+rs[3][i].qty1+rs[2][i].qty1+rs[1][i].qty1+rs[0][i].qty1}
+          - i++
+        //- .pagebreak

@@ -6,28 +6,26 @@ html
     title report
   body
     button.btn.btn-sm.btn-success(onclick='window.print()') Print
-    - for(var page of _rs)
-      table.table
-        thead
-          tr 
-            td.center.bold(colspan='4') แบบฟอร์มใบขอสั่งซื้อยาและเวชภัณฑ์	
+  
+    table.table
+      thead
+        tr 
+          td.center.bold(colspan='4') ประมาณการวัสดุสำนักงาน ปราจีนบุรี งบ #{year}	
+      tbody
+        tr.head.center
+          td.center(width="10%") ลำดับที่ 
+          td(width="60%") รายการ (ลักษณะและขนาด) 
+          td(colspan='2' width="30%").center จำนวนที่เบิก
+        - var i=0
+        - for(var page of _rs)
+          - i++
           tr
-            td.center.bold(colspan='4') มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ (ปราจีนบุรี)	
-          tr
-            td.center.bold(colspan='4') ประจำเดือน #{printMount}
-          tr
-            td.center.bold(colspan='4') ประเภท................#{page.generic_type_name}..................	
-        tbody
-          tr.head.center
-            td.center(width="10%") ลำดับที่ 
-            td(width="60%") รายการ (ลักษณะและขนาด) 
-            td(colspan='2' width="30%").center จำนวนที่เบิก
-          - var i=0 
+            td.center #{i}
+            td.left.bold(colspan='3') #{page.equipment_name}
           - for(var detail of page.detail)
-            - i++
-                tr
-                  td.center #{i}
-                  td.left #{detail.generic_name}
-                  td.right.border-right( width="15%") #{detail.req_qty} 
-                  td.border-left(style="border-right:0" width="15%") #{detail.unit_name}
+            tr
+              td.center 
+              td.left #{detail.product_name}
+              td.right.border-right( width="15%") #{detail.req_qty} 
+              td.border-left(style="border-right:0" width="15%") #{detail.unit_name}
         .pagebreak

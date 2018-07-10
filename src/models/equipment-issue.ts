@@ -20,7 +20,7 @@ export class EquipmentIssueModel {
 
   updateSummaryApprove(knex: Knex, issueIds: any, data: any) {
     return knex('wm_equipment_issues')
-      .whereIn('issue_id', issueIds)
+      .where('issue_id', issueIds)
       .update(data);
   }
 
