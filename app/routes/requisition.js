@@ -203,7 +203,8 @@ router.get('/orders/approved', (req, res, next) => __awaiter(this, void 0, void 
     let fillterCancel = 'all';
     try {
         let rs = yield requisitionModel.getListApproved(db, null, warehouseId, limit, offset, query, fillterCancel);
-        res.send({ ok: true, rows: rs[0] });
+        let rst = yield requisitionModel.gettotalApproved(db, null, warehouseId, limit, offset, query, fillterCancel);
+        res.send({ ok: true, rows: rs[0], total: rst[0] });
     }
     catch (error) {
         res.send({ ok: false, error: error.message });

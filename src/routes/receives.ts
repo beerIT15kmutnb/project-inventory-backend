@@ -168,6 +168,7 @@ router.post('/approve', co(async (req, res, next) => {
     let userId = req.decoded.id;
     let peopleId = req.decoded.people_id;
     let receiveIds = req.body.receiveIds;
+    receiveIds = Array.isArray(receiveIds) ? receiveIds : [receiveIds]
     try {
       await receiveModel.saveApprove(db, receiveIds);
       let _rproducts = await receiveModel.getReceiveProductsImport(db, receiveIds);

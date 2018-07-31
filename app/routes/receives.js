@@ -124,6 +124,7 @@ router.post('/approve', co((req, res, next) => __awaiter(this, void 0, void 0, f
         let userId = req.decoded.id;
         let peopleId = req.decoded.people_id;
         let receiveIds = req.body.receiveIds;
+        receiveIds = Array.isArray(receiveIds) ? receiveIds : [receiveIds];
         try {
             yield receiveModel.saveApprove(db, receiveIds);
             let _rproducts = yield receiveModel.getReceiveProductsImport(db, receiveIds);

@@ -218,7 +218,9 @@ router.get('/orders/approved', async (req, res, next) => {
 
   try {
     let rs: any = await requisitionModel.getListApproved(db, null, warehouseId, limit, offset, query,fillterCancel);
-    res.send({ ok: true, rows: rs[0]});
+    let rst: any = await requisitionModel.gettotalApproved(db, null, warehouseId, limit, offset, query,fillterCancel);
+
+    res.send({ ok: true, rows: rs[0], total: rst[0]});
   } catch (error) {
     res.send({ ok: false, error: error.message });
   } finally {

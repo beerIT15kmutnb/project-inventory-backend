@@ -2,6 +2,20 @@ import Knex = require('knex');
 import * as moment from 'moment';
 
 export class EquipmentRequisitionModel {
+  gettotalApproved(db: Knex, srcWarehouseId: any = null, dstWarehouseId: any = null, limit: number, offset: number, query = '', fillterCancel) {
+    let _query = `%${query}%`;
+    let sql = `
+    select count(ro.requisition_code) as total
+    from wm_equipment_requisition_orders as ro
+    where ro.is_approve='Y' `;
+    if (query) {
+      sql += ` and ro.requisition_code like '${_query}' `;
+    }
+
+    sql += `  order by ro.requisition_code DESC`;
+    return db.raw(sql);
+
+  }
   getListApproved(db: Knex, srcWarehouseId: any = null, dstWarehouseId: any = null, limit: number, offset: number, query = '', fillterCancel) {
     let _query = `%${query}%`;
     let sql = `

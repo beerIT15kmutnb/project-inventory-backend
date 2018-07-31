@@ -171,6 +171,7 @@ router.put('/update/:issueId', co((req, res, next) => __awaiter(this, void 0, vo
 router.post('/approveIssue', co((req, res, next) => __awaiter(this, void 0, void 0, function* () {
     let db = req.db;
     let issueIds = req.body.issueId;
+    issueIds = Array.isArray(issueIds) ? issueIds : [issueIds];
     try {
         const decoded = req.decoded;
         const warehouseId = decoded.warehouseId;

@@ -15,7 +15,7 @@ class IssueModel {
     }
     updateSummaryApprove(knex, issueIds, data) {
         return knex('wm_issues')
-            .whereIn('issue_id', issueIds)
+            .where('issue_id', issueIds)
             .update(data);
     }
     getApproveProducts(knex, issueIds) {
@@ -199,7 +199,8 @@ class IssueModel {
             .leftJoin('wm_transection_issues as ts', 'ts.transection_id', 'ss.transection_issue_id')
             .orderBy('ss.issue_id', 'desc');
         if (status) {
-            query.where('ss.is_approve', status);
+            query.where('ss.is_approve', status)
+                .andWhere('ss.is_cancel', 'N');
         }
         return query.limit(limit).offset(offset);
     }

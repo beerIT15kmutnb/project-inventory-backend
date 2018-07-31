@@ -20,7 +20,7 @@ export class IssueModel {
 
   updateSummaryApprove(knex: Knex, issueIds: any, data: any) {
     return knex('wm_issues')
-      .whereIn('issue_id', issueIds)
+      .where('issue_id', issueIds)
       .update(data);
   }
 
@@ -221,7 +221,6 @@ editType(knex: Knex, items: any, Id: any) {
 
   }
   getListIssues(knex: Knex, limit: number = 15, offset: number = 0, status: any = '') {
-
     let subQuery = knex('wm_issue_products as sd')
       .select(knex.raw('count(*) as total'))
       .whereRaw('sd.issue_id=ss.issue_id')
@@ -234,6 +233,8 @@ editType(knex: Knex, items: any, Id: any) {
 
     if (status) {
       query.where('ss.is_approve', status)
+      .andWhere('ss.is_cancel',  'N');
+
     }
 
     return query.limit(limit).offset(offset);
@@ -244,7 +245,7 @@ editType(knex: Knex, items: any, Id: any) {
     let query = knex('wm_issues as ss')
       .select(knex.raw('count(*) as total'))
     if (status) {
-      query.where('ss.is_approve', status);
+      query.where('ss.is_approve', status)
     }
     return query;
   }

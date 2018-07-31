@@ -1,6 +1,18 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class RequisitionModel {
+    gettotalApproved(db, srcWarehouseId = null, dstWarehouseId = null, limit, offset, query = '', fillterCancel) {
+        let _query = `%${query}%`;
+        let sql = `
+    select count(ro.requisition_code) as total
+    from wm_requisition_orders as ro
+    where ro.is_approve='Y' `;
+        if (query) {
+            sql += ` and ro.requisition_code like '${_query}' `;
+        }
+        sql += `  order by ro.requisition_code DESC`;
+        return db.raw(sql);
+    }
     getListApproved(db, srcWarehouseId = null, dstWarehouseId = null, limit, offset, query = '', fillterCancel) {
         let _query = `%${query}%`;
         let sql = `
@@ -64,12 +76,6 @@ class RequisitionModel {
     where ro.is_approve='N' `;
         if (query) {
             sql += ` and (ro.requisition_code like '${_query}')`;
-        }
-        if (fillterCancel === 'nCancel') {
-            sql += ` and ro.is_cancel = 'N' `;
-        }
-        else if (fillterCancel === 'cancel') {
-            sql += ` and ro.is_cancel = 'Y' `;
         }
         return db.raw(sql);
     }

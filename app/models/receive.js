@@ -775,6 +775,10 @@ WHERE
         return knex.raw(sql);
     }
     getReceiveStatus(knex, limit, offset, status) {
+        let s = `and r.is_cancel = 'N'`;
+        if (status !== 'N') {
+            s = '';
+        }
         let sql = `
     SELECT
     r.*,
@@ -785,11 +789,13 @@ WHERE
         wm_receive_detail AS rd
       WHERE
         rd.receive_id = r.receive_id
+        ${s}
     ) AS total
   FROM
     wm_receives AS r
   WHERE
   r.is_approve like '%${status}%'
+  ${s}
   and r.receive_id IN (
       SELECT
         rd.receive_id
@@ -802,13 +808,18 @@ WHERE
         return knex.raw(sql);
     }
     getReceiveStatusTotal(knex, status) {
+        let s = `and r.is_cancel = 'N'`;
+        if (status !== 'N') {
+            s = '';
+        }
         let sql = `
     SELECT
     count(*) AS total
     FROM
     wm_receives AS r
   WHERE
-  r.is_approve like '%${status}%'
+  r.is_approve like '%${status}%' 
+  ${s}
   and r.receive_id IN (
       SELECT
         rd.receive_id

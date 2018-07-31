@@ -165,6 +165,7 @@ router.post('/approveIssue', co(async (req, res, next) => {
 
   let db = req.db;
   let issueIds = req.body.issueId;
+  issueIds = Array.isArray(issueIds) ? issueIds : [issueIds]
   try {
     const decoded = req.decoded;
     const warehouseId = decoded.warehouseId;
