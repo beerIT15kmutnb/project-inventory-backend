@@ -24,6 +24,7 @@ const equipment_issue_1 = require("./routes/equipment-issue");
 const equipment_requisition_1 = require("./routes/equipment-requisition");
 const equipments_1 = require("./routes/equipments");
 const dashboard_1 = require("./routes/dashboard");
+const setting_1 = require("./routes/setting");
 const app = express();
 app.set('views', path.join(__dirname, '../views'));
 app.set('view engine', 'pug');
@@ -86,6 +87,7 @@ app.use((req, res, next) => {
 app.use('/login', login_1.default);
 app.use('/', index_1.default);
 app.use('/dashboard', checkAuth, dashboard_1.default);
+app.use('/setting', checkAuth, setting_1.default);
 app.use('/equipment-products', checkAuth, equipment_products_1.default);
 app.use('/equipment-requisition', checkAuth, equipment_requisition_1.default);
 app.use('/equipment-receives', checkAuth, equipment_receives_1.default);

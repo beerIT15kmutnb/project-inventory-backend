@@ -33,6 +33,8 @@ import equipmentIssue from './routes/equipment-issue';
 import equipmentRequisition from './routes/equipment-requisition';
 import equipment from './routes/equipments';
 import dashboard from './routes/dashboard';
+
+import setting from './routes/setting'
 const app: express.Express = express();
 
 //view engine setup
@@ -101,9 +103,10 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use('/login', login)
+app.use('/login', login);
 app.use('/', index);
-app.use('/dashboard',checkAuth, dashboard)
+app.use('/dashboard',checkAuth, dashboard);
+app.use('/setting',checkAuth, setting);
 
 app.use('/equipment-products', checkAuth, equipmentProduct);
 app.use('/equipment-requisition', checkAuth, equipmentRequisition);
