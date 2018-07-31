@@ -57,7 +57,7 @@ router.get('/getTopFiveMonthReqGen', co(async (req, res, next) => {
         let jsonFrom: any = []
         for (let [index, data] of dataDates.entries()) {
             for (let obj of data) {
-                if (_.findIndex(jsonFrom, (v: any) => { return v == obj.generic_id }) == -1) {
+                if (_.findIndex(jsonFrom, (v: any) => { return v.id == obj.generic_id }) == -1) {
                     jsonFrom.push({
                         id: obj.generic_id,
                         name: obj.generic_name,
@@ -113,7 +113,7 @@ router.get('/getTopFiveMonthReqEq', co(async (req, res, next) => {
         let jsonFrom: any = []
         for (let [index, data] of dataDates.entries()) {
             for (let obj of data) {
-                if (_.findIndex(jsonFrom, (v: any) => { return v == obj.equipment_id }) == -1) {
+                if (_.findIndex(jsonFrom, (v: any) => { return v.id == obj.equipment_id }) == -1) {
                     jsonFrom.push({
                         id: obj.equipment_id,
                         name: obj.equipment_name,
