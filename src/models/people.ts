@@ -27,13 +27,27 @@ export class PeopleModel {
             .count('* as total')
     }
     savePeople(knex: Knex, items: any) {
-        knex('um_people')
+        return knex('um_people')
           .insert(items)
     }
-    editPeople(knex: Knex, items: any, id: any) {
-        knex('um_people')
+    saveUser(knex: Knex, items: any) {
+        return knex('um_users')
+          .insert(items)
+    }
+    savePeoUser(knex: Knex, items: any) {
+        return knex('um_people_users')
+          .insert(items)
+    }
+    editUser(knex: Knex, items: any, id: any) {
+        return  knex('um_users')
       .update(items)
-      .whereIn('people_id', id)
+      .where('user_id', id)
+    }
+    
+    editPeople(knex: Knex, items: any, id: any) {
+        return  knex('um_people')
+      .update(items)
+      .where('people_id', id)
     }
 
 }

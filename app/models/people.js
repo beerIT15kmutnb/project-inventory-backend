@@ -25,13 +25,26 @@ class PeopleModel {
             .count('* as total');
     }
     savePeople(knex, items) {
-        knex('um_people')
+        return knex('um_people')
             .insert(items);
     }
-    editPeople(knex, items, id) {
-        knex('um_people')
+    saveUser(knex, items) {
+        return knex('um_users')
+            .insert(items);
+    }
+    savePeoUser(knex, items) {
+        return knex('um_people_users')
+            .insert(items);
+    }
+    editUser(knex, items, id) {
+        return knex('um_users')
             .update(items)
-            .whereIn('people_id', id);
+            .where('user_id', id);
+    }
+    editPeople(knex, items, id) {
+        return knex('um_people')
+            .update(items)
+            .where('people_id', id);
     }
 }
 exports.PeopleModel = PeopleModel;

@@ -25,12 +25,10 @@ router.post('/alert-expired', wrap(async (req, res, next) => {
     let numDays = {
       num_days: req.body.numDays
     }
-    console.log(numDays, Id);
 
     let rs = await productModel.alertExpired(db, numDays, Id);
     res.send({ ok: true, rows: rs })
   } catch (error) {
-    console.log(error);
     
     res.send({ ok: false, error: error.message });
   } finally {
@@ -201,7 +199,6 @@ router.post('/saveAdditionOrder', wrap(async (req, res, next) => {
       item.push(obj);
     });
 
-    console.log(order, items)
     await productModel.saveItems(db, item);
     res.send({ ok: true });
   } catch (error) {
@@ -219,7 +216,6 @@ router.post('/saveAdditionOrder', wrap(async (req, res, next) => {
 router.get('/addition-detail/:additionId', wrap(async (req, res, next) => {
   let db = req.db;
   let additionId = req.params.additionId 
-  console.log(additionId);
   
   try {
     let products = await productModel.setAddDetail(db, additionId);
@@ -376,7 +372,6 @@ router.post('/remain', wrap(async (req, res, next) => {
   let product_id = req.body.product_id
   try {
     let products = await productModel.getProductRemain(db, product_id);
-    console.log(products[0]);
 
     res.send({ ok: true, data: products[0] })
   } catch (error) {

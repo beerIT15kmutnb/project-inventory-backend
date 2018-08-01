@@ -32,7 +32,6 @@ router.post('/', wrap(async (req, res, next) => {
       let encPassword = crypto.createHash('md5').update(password).digest('hex');
       let user: any = await loginModel.doLogin(db, username, encPassword);
       if (user.length) {
-        console.log(user[0]);
         
         const payload = {
           fullname: user[0].fullname,
@@ -50,7 +49,6 @@ router.post('/', wrap(async (req, res, next) => {
         res.send({ ok: false, error: 'ชื่อผู้ใช้งาน/รหัสผ่านไม่ถูกต้อง' });
       }
     } catch (error) {
-      console.log(error);
       res.send({ ok: false, error: error.message })
     } finally {
       db.destroy();

@@ -187,7 +187,7 @@ router.post('/approve', co(async (req, res, next) => {
         };
         products.push(obj);
       });
-      console.log('++++++++', products);
+      // console.log('++++++++', products);
 
       await receiveModel.saveProducts(db, products);
       res.send({ ok: true });
@@ -267,7 +267,7 @@ router.post('/status', co(async (req, res, next) => {
     const results = await receiveModel.getReceiveStatus(db, limit, offset,status);
     res.send({ ok: true, rows: results[0], total: total });
   } catch (error) {
-    console.log(error);
+    // console.log(error);
     res.send({ ok: false, error: error.message });
   } finally {
     db.destroy();
@@ -287,7 +287,7 @@ router.post('/status/search', co(async (req, res, next) => {
     const results = await receiveModel.getReceiveStatusSearch(db, limit, offset, warehouseId, status, query);
     res.send({ ok: true, rows: results[0], total: total });
   } catch (error) {
-    console.log(error);
+    // console.log(error);
     res.send({ ok: false, error: error.message });
   } finally {
     db.destroy();

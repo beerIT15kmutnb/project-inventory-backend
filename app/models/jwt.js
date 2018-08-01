@@ -6,7 +6,6 @@ class Jwt {
         this.secretKey = process.env.SECRET_KEY;
     }
     sign(playload) {
-        console.log(this.secretKey);
         let token = jwt.sign(playload, this.secretKey, {
             expiresIn: '1d'
         });

@@ -58,7 +58,6 @@ router.put('/saveIssue', co(async (req, res, next) => {
       create_date: moment().format('YYYY-MM-DD'),
     }
     let rsSummary = await issueModel.saveIssueSummary(db, data);
-    console.log();
 
     for (let v of products) {
       let pdata: any = {
@@ -169,7 +168,6 @@ router.post('/approveIssue', co(async (req, res, next) => {
   try {
     const decoded = req.decoded;
     const warehouseId = decoded.warehouseId;
-    console.log(issueIds);
 
     for (let v of issueIds) {
       let summary = {
@@ -181,7 +179,6 @@ router.post('/approveIssue', co(async (req, res, next) => {
       let rs = await issueModel.getIssueApprove(db, v, warehouseId);
       let data = [];
       let _cutProduct = [];
-      console.log(rs.out_qty + "----------------------");
 
       rs[0].forEach(e => {
         if (e.out_qty != 0) {
@@ -191,7 +188,6 @@ router.post('/approveIssue', co(async (req, res, next) => {
           _cutProduct.push(cutProduct);
         }
       });
-      console.log(_cutProduct + "++++++++++++++++++++");
 
       await issueModel.updateSummaryApprove(db, v, summary);
       await issueModel.saveProductStock(db, _cutProduct);
@@ -200,7 +196,6 @@ router.post('/approveIssue', co(async (req, res, next) => {
     res.send({ ok: true });
 
   } catch (error) {
-    console.log(error);
     res.send({ ok: false, error: error.message });
   } finally {
     db.destroy();
@@ -277,7 +272,6 @@ router.post('/addType', co(async (req, res, next) => {
   let db = req.db;
   try {
     let items = req.body.items
-    console.log(items);
     
     let item = {
       transection_name: items.transection_name,

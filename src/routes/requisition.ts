@@ -110,7 +110,7 @@ router.put('/orders/approveRequisitionOrder/:id', co(async (req, res, next) => {
 
     await requisitionModel.updateOrder(db,id, order);
     
-    console.log(JSON.stringify(products));
+    // console.log(JSON.stringify(products));
     let item: any = [];
     for(let p of products){
       let items: any = [];
@@ -142,8 +142,8 @@ router.put('/orders/approveRequisitionOrder/:id', co(async (req, res, next) => {
     
     }
     
-    console.log('++++++')
-    console.log(item);
+    // console.log('++++++')
+    // console.log(item);
     
     res.send({ ok: true });
   } catch (error) {
@@ -196,7 +196,7 @@ router.put('/orders/saveRequisitionOrder', co(async (req, res, next) => {
       items.push(obj);
     });
 
-    console.log(order, items)
+    // console.log(order, items)
     await requisitionModel.saveItems(db, items);
     res.send({ ok: true });
   } catch (error) {
@@ -255,7 +255,7 @@ router.put('/orders/updateRequisitionOrder/:requisitionId', co(async (req, res, 
         }
         items.push(obj);
       });
-      console.log(items);
+      // console.log(items);
       
       await requisitionModel.removeItems(db, requisitionId);
       await requisitionModel.saveItems(db, items);

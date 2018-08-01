@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express = require("express");
+const crypto = require("crypto");
 const wrap = require("co-express");
 const people_1 = require("./../models/people");
 const router = express.Router();
@@ -57,7 +58,7 @@ router.get('/getTitles', wrap((req, res, next) => __awaiter(this, void 0, void 0
         db.destroy();
     }
 })));
-router.put('/savePeople', wrap((req, res, next) => __awaiter(this, void 0, void 0, function* () {
+router.post('/savePeople', wrap((req, res, next) => __awaiter(this, void 0, void 0, function* () {
     let db = req.db;
     let items = req.body.items;
     console.log(req.body);
@@ -68,7 +69,54 @@ router.put('/savePeople', wrap((req, res, next) => __awaiter(this, void 0, void 
             is_active: items.is_active,
             lname: items.lname,
         };
+        console.log(item);
         let rs = yield peopleModel.savePeople(db, item);
+        res.send({ ok: true, rows: rs });
+    }
+    catch (error) {
+        res.send({ ok: false, error: error.message });
+    }
+    finally {
+        db.destroy();
+    }
+})));
+router.post('/editUser', wrap((req, res, next) => __awaiter(this, void 0, void 0, function* () {
+    let db = req.db;
+    let items = req.body.items;
+    try {
+        let itemUser = {
+            password: crypto.createHash('md5').update(items.password).digest('hex')
+        };
+        console.log(itemUser);
+        let rs = yield peopleModel.editUser(db, itemUser, items.user_id);
+        res.send({ ok: true, rows: rs });
+    }
+    catch (error) {
+        res.send({ ok: false, error: error.message });
+    }
+    finally {
+        db.destroy();
+    }
+})));
+router.post('/saveUser', wrap((req, res, next) => __awaiter(this, void 0, void 0, function* () {
+    let db = req.db;
+    let items = req.body.items;
+    try {
+        let itemUser = {
+            username: items.username,
+            is_active: items.is_active,
+            password: crypto.createHash('md5').update(items.password).digest('hex'),
+            access_right: items.access_right,
+            warehouse_id: items.access_right == 'admin' ? 1 : 2
+        };
+        console.log(itemUser);
+        let rs = yield peopleModel.saveUser(db, itemUser);
+        let itemPu = {
+            people_id: items.people_id,
+            is_active: items.is_active,
+            user_id: rs[0]
+        };
+        let rst = yield peopleModel.savePeoUser(db, itemPu);
         res.send({ ok: true, rows: rs });
     }
     catch (error) {
@@ -86,7 +134,7 @@ router.post('/editPeople', wrap((req, res, next) => __awaiter(this, void 0, void
             title_id: items.title_id,
             fname: items.fname,
             is_active: items.is_active,
-            lname: items.lname,
+            lname: items.lname
         };
         let id = items.people_id;
         let rs = yield peopleModel.editPeople(db, item, id);

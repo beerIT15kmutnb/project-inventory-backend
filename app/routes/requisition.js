@@ -107,7 +107,6 @@ router.put('/orders/approveRequisitionOrder/:id', co((req, res, next) => __await
         order.user_confirm_id = people_id;
         order.confirm_date = moment().format('YYYY-MM-DD HH:mm:ss');
         yield requisitionModel.updateOrder(db, id, order);
-        console.log(JSON.stringify(products));
         let item = [];
         for (let p of products) {
             let items = [];
@@ -133,8 +132,6 @@ router.put('/orders/approveRequisitionOrder/:id', co((req, res, next) => __await
             });
             yield issueModel.saveProductStock(db, _cutProduct);
         }
-        console.log('++++++');
-        console.log(item);
         res.send({ ok: true });
     }
     catch (error) {
@@ -183,7 +180,6 @@ router.put('/orders/saveRequisitionOrder', co((req, res, next) => __awaiter(this
             };
             items.push(obj);
         });
-        console.log(order, items);
         yield requisitionModel.saveItems(db, items);
         res.send({ ok: true });
     }
@@ -235,7 +231,6 @@ router.put('/orders/updateRequisitionOrder/:requisitionId', co((req, res, next) 
             };
             items.push(obj);
         });
-        console.log(items);
         yield requisitionModel.removeItems(db, requisitionId);
         yield requisitionModel.saveItems(db, items);
         res.send({ ok: true });

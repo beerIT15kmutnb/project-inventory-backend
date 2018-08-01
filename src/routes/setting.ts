@@ -26,7 +26,7 @@ router.get('/backup/save', async (req, res, next) => {
   
     // backup path
     let BACKUP_PATH = path.join(process.env.MMIS_DATA, 'backup');
-    console.log(BACKUP_PATH);
+    // console.log(BACKUP_PATH);
   
     fse.ensureDirSync(BACKUP_PATH);
   

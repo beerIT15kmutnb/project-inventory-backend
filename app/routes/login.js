@@ -30,7 +30,6 @@ router.post('/', wrap((req, res, next) => __awaiter(this, void 0, void 0, functi
             let encPassword = crypto.createHash('md5').update(password).digest('hex');
             let user = yield loginModel.doLogin(db, username, encPassword);
             if (user.length) {
-                console.log(user[0]);
                 const payload = {
                     fullname: user[0].fullname,
                     id: user[0].user_id,
@@ -48,7 +47,6 @@ router.post('/', wrap((req, res, next) => __awaiter(this, void 0, void 0, functi
             }
         }
         catch (error) {
-            console.log(error);
             res.send({ ok: false, error: error.message });
         }
         finally {

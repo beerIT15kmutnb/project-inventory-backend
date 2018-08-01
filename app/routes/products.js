@@ -24,12 +24,10 @@ router.post('/alert-expired', wrap((req, res, next) => __awaiter(this, void 0, v
         let numDays = {
             num_days: req.body.numDays
         };
-        console.log(numDays, Id);
         let rs = yield productModel.alertExpired(db, numDays, Id);
         res.send({ ok: true, rows: rs });
     }
     catch (error) {
-        console.log(error);
         res.send({ ok: false, error: error.message });
     }
     finally {
@@ -203,7 +201,6 @@ router.post('/saveAdditionOrder', wrap((req, res, next) => __awaiter(this, void 
             };
             item.push(obj);
         });
-        console.log(order, items);
         yield productModel.saveItems(db, item);
         res.send({ ok: true });
     }
@@ -217,7 +214,6 @@ router.post('/saveAdditionOrder', wrap((req, res, next) => __awaiter(this, void 
 router.get('/addition-detail/:additionId', wrap((req, res, next) => __awaiter(this, void 0, void 0, function* () {
     let db = req.db;
     let additionId = req.params.additionId;
-    console.log(additionId);
     try {
         let products = yield productModel.setAddDetail(db, additionId);
         res.send({ ok: true, rows: products });
@@ -380,7 +376,6 @@ router.post('/remain', wrap((req, res, next) => __awaiter(this, void 0, void 0, 
     let product_id = req.body.product_id;
     try {
         let products = yield productModel.getProductRemain(db, product_id);
-        console.log(products[0]);
         res.send({ ok: true, data: products[0] });
     }
     catch (error) {

@@ -28,8 +28,6 @@ router.get('/report/addGen/:additionId', wrap(async (req, res, next) => {
   try {
     let _rs = await reportModel.getGenType(db);
     for (let _genType of _rs) {
-      console.log(_genType.generic_type_id);
-      console.log(additionId);
 
       let rs = await reportModel.getReportGeneric(db, _genType.generic_type_id, additionId)
       _genType.detail = rs[0];
@@ -51,8 +49,6 @@ router.get('/report/addGen2/:additionId', wrap(async (req, res, next) => {
   try {
     let _rs = await reportModel.getGenType(db);
     for (let _genType of _rs) {
-      console.log(_genType.generic_type_id);
-      console.log(additionId);
 
       let rs = await reportModel.getReportGeneric(db, _genType.generic_type_id, additionId)
       _genType.detail = rs[0];
@@ -75,8 +71,6 @@ router.get('/report/addEqui/:additionId', wrap(async (req, res, next) => {
     let year = (moment.tz('Asia/Bangkok').get('year') + 543)
     let _rs = await reportModel.getEquipType(db);
     for (let _genType of _rs) {
-      console.log(_genType.equipment_id);
-      console.log(additionId);
       let rs = await reportModel.getReportEquipment(db, _genType.equipment_id, additionId)
       _genType.detail = rs[0];
     }
@@ -98,8 +92,6 @@ router.get('/report/addEqui2/:additionId', wrap(async (req, res, next) => {
     let year = (moment.tz('Asia/Bangkok').get('year') + 543)
     let _rs = await reportModel.getEquipType(db);
     for (let _genType of _rs) {
-      console.log(_genType.equipment_id);
-      console.log(additionId);
       let rs = await reportModel.getReportEquipment(db, _genType.equipment_id, additionId)
       _genType.detail = rs[0];
     }

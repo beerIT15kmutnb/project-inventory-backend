@@ -143,7 +143,6 @@ router.post('/approve', co((req, res, next) => __awaiter(this, void 0, void 0, f
                 };
                 products.push(obj);
             });
-            console.log('++++++++', products);
             yield receiveModel.saveProducts(db, products);
             res.send({ ok: true });
         }
@@ -228,7 +227,6 @@ router.post('/status', co((req, res, next) => __awaiter(this, void 0, void 0, fu
         res.send({ ok: true, rows: results[0], total: total });
     }
     catch (error) {
-        console.log(error);
         res.send({ ok: false, error: error.message });
     }
     finally {
@@ -249,7 +247,6 @@ router.post('/status/search', co((req, res, next) => __awaiter(this, void 0, voi
         res.send({ ok: true, rows: results[0], total: total });
     }
     catch (error) {
-        console.log(error);
         res.send({ ok: false, error: error.message });
     }
     finally {

@@ -50,7 +50,6 @@ let checkAuth = (req, res, next) => {
         req.decoded = decoded;
         next();
     }, err => {
-        console.log(err);
         return res.send({
             ok: false,
             error: 'No token provided.',
